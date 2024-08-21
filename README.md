@@ -144,7 +144,7 @@ The following submenus are available, with different actions for each of the fou
 
 - [ ] Add license agreement screen on first use.
 - [ ] Create update-checker on startup.
-- [ ] Add md5 of SHA hash of source code to `settings.json`.
+- [ ] Add md5 or SHA hash of source code to `settings.json`.
 - [ ] Create `configure.py file` with a simple application for modifying data values in `settings.json`.
 - [ ] Allow user-created metadata.
     - [ ] Add metadata configuration fields to `settings.json`.

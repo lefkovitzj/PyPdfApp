@@ -53,6 +53,7 @@ This is an example of `app.py` being used to open the `demo.pdf` file.
 * CustomTinter
 * PyMuPdf
 * Pillow
+* Requests
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -79,7 +80,10 @@ Begin by downloading the Python programming language from python.org, and make s
   ```sh
   pip install pymupdf
   ```
-
+* Requests
+  ```sh
+  pip install requests
+  ```
 ### Installation
 
 1. Download all `.py` files in this repository as well as the `settings.json` file.
@@ -142,8 +146,8 @@ The following submenus are available, with different actions for each of the fou
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Add license agreement screen on first use.
-- [ ] Create update-checker on startup.
+- [x] Add license agreement screen on first use.
+- [x] Create update-checker on startup.
 - [ ] Add md5 or SHA hash of source code to `settings.json`.
 - [ ] Create `configure.py file` with a simple application for modifying data values in `settings.json`.
 - [ ] Allow user-created metadata.
@@ -200,6 +204,7 @@ Project Link: [https://github.com/lefkovitzj/PyPdfApp](https://github.com/lefkov
 * [PyMuPDF](https://pymupdf.readthedocs.io/), which was used in all the under-the-hood PDF manipulation and access functions.
 * [CustomTkinter](https://customtkinter.tomschimansky.com/), which was used to create most of the modern user interface elements.
 * [Pillow](https://pillow.readthedocs.io/), which was used in the PDF page rendering process.
+* [Requests](https://requests.readthedocs.io/), which was used in the update launcher process.
 * [othneildrew's Best-README-Template](https://github.com/othneildrew/Best-README-Template/), which was used in a modified form for this project's `README.md` file.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

@@ -1,8 +1,10 @@
 {
-    "version": "1.0",
+    "version": "1.1",
     "author": "lefkovitzj",
-    "release_date": "8/15/2024",
-
+    "release_date": "8/22/2024",
+    "newest_version_settings_url": "https://raw.githubusercontent.com/lefkovitzj/PyPdfApp/main/settings.json",
+    "newest_version_url": "https://github.com/lefkovitzj/PyPdfApp/",
+    "license_agreed_to": false,
     "app_max_zoom_scale": 2,
     "ask_save_before_exit": true,
     "allow_keyboard_events": true

@@ -1,33 +1,34 @@
 """
     Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/15/2024
+    File Last Modified: 8/22/2024
     Project Name: PyPdfApp
     File Name: pypdfgui.py
 """
 
 # Python Standard Library Imports.
-import os
-import sys
-from tkinter import *
-import traceback
-import warnings
-import json
-import subprocess
 import copy
+import json
+import os
+import requests
+import subprocess
+import sys
+import traceback
+from tkinter import *
+import warnings
+import webbrowser
 
 # Third-party Module Imports.
-from PIL import ImageTk
-import PIL
-import fitz
 import customtkinter as ctk
+import fitz
+import PIL
 
 # Project Imports.
+from extract import PDF_Extractor
 from gui import GUI_Menu, gui_get_file
 from load import open_pdf
-from save import save_pdf
 from manipulate import *
 from merge import PDF_Merger
-from extract import PDF_Extractor
+from save import save_pdf
 
 class App():
     def __init__(self):
@@ -49,6 +50,10 @@ class App():
         with open("settings.json", "r") as json_settings:
             self.settings = json.load(json_settings)
 
+        # Startup checks.
+        self.needs_update = self.on_startup_update_check()
+        self.license_agreed = self.on_startup_license_check()
+
         # Load the menu data.
         self.menus = {
                             "Encrypt & Compress":       GUI_Menu("Encryption", self.root, ["Set Encryption", "Remove Encryption", "Compress", "Compress (max)"], [self.event_set_encryption, self.event_remove_encryption, self.event_compress, self.event_compress_max], [True, True, True, True]),
@@ -57,8 +62,8 @@ class App():
         }
 
         # Add the menu area.
-        self.menu_area = ctk.CTkFrame(self.root)#, width=self.display_width)
-        self.menu_area.pack(anchor="nw", fill="x", expand=True)
+        self.menu_area = ctk.CTkFrame(self.root)
+        self.menu_area.pack(anchor="nw", fill="x")
 
         # Create and configure the area for the submenu.
         self.submenu = ctk.CTkFrame(self.menu_area)
@@ -136,7 +141,7 @@ class App():
         self.set_menu("Pages")
 
         # Name the window.
-        self.root.title("PyPdfUtils")
+        self.root.title("PyPdfApp")
 
         # Configure keybinds.
         if bool(self.settings["allow_keyboard_events"]):
@@ -148,6 +153,37 @@ class App():
 
         self.root.bind("<Configure>", lambda event: self.config_update_image())
 
+        # Application update screen.
+        if self.needs_update:
+            self.update_area = ctk.CTkFrame(self.root)
+            self.update_area.place(anchor="nw", relheight=1.0, relwidth=1.0)
+            ctk.CTkLabel(self.update_area, text = "Your software is not up to date. A new version is available!", fg_color = "transparent").pack()
+
+            textbox = ctk.CTkTextbox(self.update_area)
+            textbox.insert(0.0,
+                                """Your software is no longer up to date. Software updates are strongly encouraged. \nWhile this version should continue to operate, you will potentially be missing out on:\n  1. New application features.\n  2. Security updates.\n  3. Critical bug fixes.\n  4. Improved application efficiency.\n\nBy continuing to use this version of PyPdfApp you may experience some of the following issues:\n  1. Unexpected program crashes.\n  2. User interface glitches.\n  3. Functionality failures.\n  4. Possible corruption of PDF files. \n\n To ensure you are using the most recent version of PyPdfApp, select "Open browser for update". \nFrom there, you can download the newest version of PyPdfApp avaialable! """
+                        )
+            textbox.configure(state="disabled")
+            textbox.pack(anchor="nw", fill="both", expand=True)
+
+            ctk.CTkButton(self.update_area, text="Open browser for update.", command = self.update_web_event).pack(side="right")
+            ctk.CTkButton(self.update_area, text="Continue without update.", command = self.update_skip_event).pack(side="left")
+
+        # Application license agreement screen.
+        if not self.license_agreed:
+            self.license_area = ctk.CTkFrame(self.root)
+            self.license_area.place(anchor="nw", relheight=1.0, relwidth=1.0)
+            ctk.CTkLabel(self.license_area, text = "You must agree to the MIT license to continue!", fg_color = "transparent").pack(anchor="nw", fill="x")
+
+            with open("license.txt", "r") as license_doc:
+                license_text = license_doc.read()
+            textbox = ctk.CTkTextbox(self.license_area)
+            textbox.insert(0.0, license_text)
+            textbox.configure(state="disabled")
+            textbox.pack(anchor="nw", fill="both", expand=True)
+
+            ctk.CTkButton(self.license_area, text="I agree to the MIT License.", command = self.license_agree_event).pack(anchor="nw", fill="x", side="right")
+
         # Set window behavior.
         if bool(self.settings["ask_save_before_exit"]):
             self.root.protocol("WM_DELETE_WINDOW", self.app_exit_event) # Add on-exit "Are you sure?" event.
@@ -157,6 +193,45 @@ class App():
 
         # Start the main application loop.
         self.root.mainloop()
+
+    def on_startup_update_check(self):
+        """ Verify that the software is up to date with the most recent version. """
+        settings_url = self.settings["newest_version_settings_url"] # Load from settings.json's data.
+        version = self.settings["version"]
+
+        url_data = requests.get(settings_url).json() # Get the data at "newest_version_settings_url" as JSON data.
+        if url_data["version"] != version: # The version does not match.
+            return True
+        return False
+
+    def on_startup_license_check(self):
+        """ Verify that the user has already agreed to the MIT License terms and conditions. """
+        if self.settings["license_agreed_to"] == True: # The license has been agreed to.
+            return True
+        return False
+
+    def license_agree_event(self):
+        """ Process a license agreement button event. """
+        try: # Frame exists, destroy it and its contents.
+            self.license_area.destroy()
+            self.settings["license_agreed_to"] = True
+            with open("settings.json", "w") as json_settings:
+                json.dump(self.settings, json_settings, indent=4)
+                json_settings.save()
+        except: # Frame was not created, should never happen unless source code is tampered with.
+            pass
+
+    def update_skip_event(self):
+        """ Process an update skip button event. """
+        try: # Frame exists, destroy it and its contents.
+            self.update_area.destroy()
+        except: # Frame was not created, should never happen unless source code is tampered with.
+            pass
+
+    def update_web_event(self):
+        """ Process an web update button event. """
+        webbrowser.open(self.settings["newest_version_url"])
+        sys.exit()
 
     def adjust_scale(self, event):
         """ Process a slider adjustment event. """
@@ -212,7 +287,7 @@ class App():
         self.pdf_canvas.delete("all") # Start with an empty canvas.
 
         img = img.resize((int(pix.width * self.scale), int(pix.height * self.scale)), resample=PIL.Image.Resampling.NEAREST) # Resize and prepare the pdf page image.
-        self.tkimg = ImageTk.PhotoImage(img)
+        self.tkimg = PIL.ImageTk.PhotoImage(img)
 
         with warnings.catch_warnings(): # Prevent console warning for CTkLabel with non-CTkImage as "image" argument. Solution found at: https://stackoverflow.com/questions/14463277/how-to-disable-python-warnings
             warnings.simplefilter("ignore")

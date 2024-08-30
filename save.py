@@ -1,6 +1,6 @@
 """
     Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/15/2024
+    File Last Modified: 8/29/2024
     Project Name: PyPdfApp
     File Name: save.py
 """
@@ -12,7 +12,7 @@ from datetime import date
 import fitz
 import customtkinter as ctk
 
-def save_pdf(fitz_doc, compress_basic = False, compress_max = False, password = None, dialog_text=None, dialog_title=None, forced_save = True, *args):
+def save_pdf(fitz_doc, custom_metadata, compress_basic = False, compress_max = False, password = None, dialog_text=None, dialog_title=None, forced_save = True, *args):
     file_path = None
     if dialog_text == None:
         dialog_text = "Filename"
@@ -36,7 +36,12 @@ def save_pdf(fitz_doc, compress_basic = False, compress_max = False, password = 
     if compress_basic or compress_max:
         compress = True
 
-    fitz_doc.set_metadata({"title": file_path.lower().replace(".pdf","").title(), "creator": "PyPdfApp", "producer": "PyPdfApp", "modDate": str(date.today()), "creationDate": str(date.today())})
+    if custom_metadata["title"] == None:
+        custom_metadata["title"] = file_path.lower().replace(".pdf","").title()
+    custom_metadata["creationDate"] = str(date.today())
+    custom_metadata["modDate"] = str(date.today())
+
+    fitz_doc.set_metadata(custom_metadata)
 
     if password != None:
         perm = int( # Set the permissions for the file.

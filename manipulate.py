@@ -1,6 +1,6 @@
 """
     Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/15/2024
+    File Last Modified: 8/29/2024
     Project Name: PyPdfApp
     File Name: manipulate.py
 """

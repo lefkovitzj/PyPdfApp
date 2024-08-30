@@ -1,6 +1,6 @@
 """
     Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/22/2024
+    File Last Modified: 8/29/2024
     Project Name: PyPdfApp
     File Name: pypdfgui.py
 """
@@ -45,6 +45,7 @@ class App():
         self.compress_max = False
         self.page_i = 0
         self.scale = 1.0
+        self.custom_metadata = {"creator": "PyPdfApp", "producer": "PyPdfApp"}
 
         # Get the settings file data.
         with open("settings.json", "r") as json_settings:
@@ -58,6 +59,7 @@ class App():
         self.menus = {
                             "Encrypt & Compress":       GUI_Menu("Encryption", self.root, ["Set Encryption", "Remove Encryption", "Compress", "Compress (max)"], [self.event_set_encryption, self.event_remove_encryption, self.event_compress, self.event_compress_max], [True, True, True, True]),
                             "Pages":                    GUI_Menu("Pages", self.root, ["Move up", "Move down", "Delete", "Insert Blank"], [self.event_move_up, self.event_move_down, self.event_delete, self.event_insert_page], [True, True, True, True]),
+                            "Meta Data":                GUI_Menu("Meta Data", self.root, ["Set Author", "Set Title", "Set Subject", "Add Keywords"], [self.event_set_meta_author, self.event_set_meta_title, self.event_set_meta_subject, self.event_set_meta_keywords], [True, True, True, True]),
                             "Insert & Extract":         GUI_Menu("Insert &  Extract", self.root, ["Insert PDF", "Extract text", "Extract images", "Screenshot Page"], [self.event_insert_pdf, self.event_extract_text, self.event_extract_images, self.event_screenshot_page], [True, True, True, True])
         }
 
@@ -98,7 +100,7 @@ class App():
 
         # First menu column.
         self.B1 = ctk.CTkFrame(self.submenu, fg_color="#333333")
-        self.mode = ctk.CTkOptionMenu(self.B1, values=["Pages", "Encrypt & Compress", "Insert & Extract"], command=self.set_menu, width=self.menu_area.winfo_width()/4)
+        self.mode = ctk.CTkOptionMenu(self.B1, values=["Pages", "Encrypt & Compress", "Insert & Extract", "Meta Data"], command=self.set_menu, width=self.menu_area.winfo_width()/4)
         self.MB1 = ctk.CTkButton(self.submenu, text=" ",  command = lambda: print(""))
         self.MB1.grid(row = 1, column=0, columnspan=3, padx=10, pady=10)
         self.B1.grid(row = 0, column=0, columnspan=3)
@@ -253,7 +255,7 @@ class App():
 
     def save_event(self, *args):
         """ Process a save event. """
-        save_pdf(self.doc, self.compress_basic, self.compress_max, self.password, forced_save=False)
+        save_pdf(self.doc, self.custom_metadata, self.compress_basic, self.compress_max, self.password, forced_save=False)
         self.mods_made = False
 
     def set_menu(self, choice):
@@ -367,20 +369,49 @@ class App():
 
     def save_pdf(self, event):
         """ Save the modified pdf document. """
-        save_pdf(self.doc, compress_basic = self.compress_basic, compress_max = self.compress_max, password = self.password)
+        save_pdf(self.doc, self.custom_metadata, compress_basic = self.compress_basic, compress_max = self.compress_max, password = self.password)
 
 
     def app_exit_event(self):
         """ Process an appliction exit event. """
         if self.mods_made:
-            save_pdf(self.doc, compress_basic = self.compress_basic, compress_max = self.compress_max, password = self.password, dialog_text = "Filename", dialog_title="Save File Changes?",forced_save = False)
+            save_pdf(self.doc, self.custom_metadata, compress_basic = self.compress_basic, compress_max = self.compress_max, password = self.password, dialog_text = "Filename", dialog_title="Save File Changes?",forced_save = False)
         sys.exit()
 
     """ MB Event actions by Menu Category.
-    Pages: "Set Encryption", "Remove Encryption", "Compress", "Compress (max)"
-    Encrypt & Compress: "Move up", "Move down", "Delete", "Insert Blank"
+    Encrypt & Compress: "Set Encryption", "Remove Encryption", "Compress", "Compress (max)"
+    Pages: "Move up", "Move down", "Delete", "Insert Blank"
     Insert & Extract: "Insert PDF", "Extract text", "Extract images", "Screenshot Page"
+    Meta Data: "Set Author", "Set Title", "Set Subject", "Add Keywords"
     """
+
+    def event_set_meta_author(self, *args):
+        """ Set the metadata "author" tag. """
+        author_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Author: ")
+        author = author_dialog.get_input()
+        if author.strip() != "":
+            self.custom_metadata["author"] = author.strip()
+
+    def event_set_meta_title(self, *args):
+        """ Set the metadata "title" tag. """
+        title_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Author: ")
+        title = title_dialog.get_input()
+        if title.strip() != "":
+            self.custom_metadata["title"] = title.strip()
+
+    def event_set_meta_subject(self, *args):
+        """ Set the metadata "subject" tag. """
+        subject_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Subject: ")
+        subject = subject_dialog.get_input()
+        if subject.strip() != "":
+            self.custom_metadata["subject"] = subject.strip()
+
+    def event_set_meta_keywords(self, *args):
+        """ Set the metadata "keywords" tag. """
+        keywords_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Keywords: ")
+        keywords = keywords_dialog.get_input()
+        if keywords.strip() != "":
+            self.custom_metadata["keywords"] = keywords.strip()
 
     def event_set_encryption(self, *args):
         """ Set Encryption Password for PDF (Button Event). """
@@ -452,7 +483,7 @@ class App():
         self.mods_made = True # A modification has been made to the document.
         if self.page_i < len(self.doc):
             mover = Page_Move_PDF(self.doc, None)
-            mover.move(self.page_i, self.page_i + 2)
+            mover.move(self.page_i+1, self.page_i)
             self.doc = mover.get()
             self.update_page(self.page_i)
 

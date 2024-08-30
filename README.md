@@ -151,7 +151,7 @@ The following submenus are available, with different actions for each of the fou
 - [ ] Add md5 or SHA hash of source code to `settings.json`.
 - [ ] Create `configure.py file` with a simple application for modifying data values in `settings.json`.
 - [ ] Allow user-created metadata.
-    - [ ] Add metadata configuration fields to `settings.json`.
+    - [ ] Add metadata configuration submenu.
     - [ ] Add optional metadata to `save_pdf()` in `save.py`.
 
 See the [open issues](https://github.com/lefkovitzj/PyPdfApp/issues) for a full list of proposed features (and known issues).

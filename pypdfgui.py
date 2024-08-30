@@ -1,6 +1,6 @@
 """
     Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/29/2024
+    File Last Modified: 8/30/2024
     Project Name: PyPdfApp
     File Name: pypdfgui.py
 """
@@ -201,10 +201,13 @@ class App():
         settings_url = self.settings["newest_version_settings_url"] # Load from settings.json's data.
         version = self.settings["version"]
 
-        url_data = requests.get(settings_url).json() # Get the data at "newest_version_settings_url" as JSON data.
-        if url_data["version"] != version: # The version does not match.
-            return True
-        return False
+        try:
+            url_data = requests.get(settings_url).json() # Get the data at "newest_version_settings_url" as JSON data.
+            if url_data["version"] != version: # The version does not match.
+                return True
+            return False
+        except: # Request failed due to lack of internet connection or missing online file.
+            return False
 
     def on_startup_license_check(self):
         """ Verify that the user has already agreed to the MIT License terms and conditions. """

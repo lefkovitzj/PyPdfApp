@@ -45,7 +45,7 @@ class App():
         self.compress_max = False
         self.page_i = 0
         self.scale = 1.0
-        self.custom_metadata = {"creator": "PyPdfApp", "producer": "PyPdfApp"}
+        self.custom_metadata = {"creator": "PyPdfApp", "producer": "PyPdfApp", "title": None}
 
         # Get the settings file data.
         with open("settings.json", "r") as json_settings:

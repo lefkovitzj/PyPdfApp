@@ -1,10 +1,19 @@
 {
-    "version": "1.2.1",
+    "version": "1.3",
     "author": "lefkovitzj",
-    "release_date": "8/30/2024",
+    "release_date": "2024-08-30",
     "newest_version_settings_url": "https://raw.githubusercontent.com/lefkovitzj/PyPdfApp/main/settings.json",
     "newest_version_url": "https://github.com/lefkovitzj/PyPdfApp/",
-    "source_file_hashes": {"app.py": "85131dcdcd2f31e61e71f8c2af93f87e", "extract.py": "3fcf135344a59b719e5e9736c45877c3", "generate_hashes.py": "8ae79acfd1cd0c2d3bdadc6b05ef2b6b", "gui.py": "e238312c1e35e4f96d8821e7257677d0", "load.py": "a6b9e07a16960c02d4848dba9ad3537c", "manipulate.py": "d7c36510f9e09fbe6356f3c6f3474c11", "merge.py": "045650cce3075d5417dec07950f5b44e", "pypdfgui.py": "7a301dd0c5ef338cc9a24979dbb8fef7", "save.py": "7e091e2a31f704d694b2ef0c6f113d89"},
+    "source_file_hashes": {
+        "app.py": "85131dcdcd2f31e61e71f8c2af93f87e",
+        "extract.py": "3fcf135344a59b719e5e9736c45877c3",
+        "gui.py": "e238312c1e35e4f96d8821e7257677d0",
+        "load.py": "a6b9e07a16960c02d4848dba9ad3537c",
+        "manipulate.py": "d7c36510f9e09fbe6356f3c6f3474c11",
+        "merge.py": "045650cce3075d5417dec07950f5b44e",
+        "pypdfgui.py": "ddd36f83bfe79f45cf059138f90172c6",
+        "save.py": "7e091e2a31f704d694b2ef0c6f113d89"
+    },
     "license_agreed_to": false,
     "app_max_zoom_scale": 2,
     "ask_save_before_exit": true,

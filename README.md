@@ -152,7 +152,7 @@ The following submenus are available, with different actions for each of the fou
     - [x] Add metadata configuration submenu. 
     - [x] Add optional metadata to `save_pdf()` in `save.py`.
 - [x] Add md5 or SHA hash of source code to `settings.json`. (Completed v1.3)
-- [ ] Add file tampering checker utility application. (Completed v1.3)
+- [x] Add file tampering checker utility application. (Completed v1.3)
 - [ ] Create `configure.py file` with a simple application for modifying data values in `settings.json`.
 - [ ] Add page rotation feature.
 - [ ] Add watermark feature.

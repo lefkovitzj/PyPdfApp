@@ -1,6 +1,6 @@
 """
     Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/30/2024
+    File Last Modified: 9/7/2024
     Project Name: PyPdfApp
     File Name: pypdfgui.py
 """
@@ -58,9 +58,11 @@ class App():
         # Load the menu data.
         self.menus = {
                             "Encrypt & Compress":       GUI_Menu("Encryption", self.root, ["Set Encryption", "Remove Encryption", "Compress", "Compress (max)"], [self.event_set_encryption, self.event_remove_encryption, self.event_compress, self.event_compress_max], [True, True, True, True]),
-                            "Pages":                    GUI_Menu("Pages", self.root, ["Move up", "Move down", "Delete", "Insert Blank"], [self.event_move_up, self.event_move_down, self.event_delete, self.event_insert_page], [True, True, True, True]),
+                            "Pages":                    GUI_Menu("Pages", self.root, ["Move up", "Move down", "Rotate right", "Rotate left"], [self.event_move_up, self.event_move_down, self.event_rotate_right, self.event_rotate_left], [True, True, True, True]),
                             "Meta Data":                GUI_Menu("Meta Data", self.root, ["Set Author", "Set Title", "Set Subject", "Add Keywords"], [self.event_set_meta_author, self.event_set_meta_title, self.event_set_meta_subject, self.event_set_meta_keywords], [True, True, True, True]),
-                            "Insert & Extract":         GUI_Menu("Insert &  Extract", self.root, ["Insert PDF", "Extract text", "Extract images", "Screenshot Page"], [self.event_insert_pdf, self.event_extract_text, self.event_extract_images, self.event_screenshot_page], [True, True, True, True])
+                            "Insert":                   GUI_Menu("Insert &  Extract", self.root, ["Insert PDF", "Insert Blank", "Watermark page", "Watermark document"], [self.event_insert_pdf, self.event_insert_page, self.event_watermark_page, self.event_watermark_document], [True, True, True, True]),
+                            "Extract":                  GUI_Menu("Insert &  Extract", self.root, ["Delete page", "Extract text", "Extract images", "Screenshot Page"], [self.event_delete, self.event_extract_text, self.event_extract_images, self.event_screenshot_page], [True, True, True, True])
+
         }
 
         # Add the menu area.
@@ -100,7 +102,7 @@ class App():
 
         # First menu column.
         self.B1 = ctk.CTkFrame(self.submenu, fg_color="#333333")
-        self.mode = ctk.CTkOptionMenu(self.B1, values=["Pages", "Encrypt & Compress", "Insert & Extract", "Meta Data"], command=self.set_menu, width=self.menu_area.winfo_width()/4)
+        self.mode = ctk.CTkOptionMenu(self.B1, values=["Pages", "Encrypt & Compress", "Insert", "Extract", "Meta Data"], command=self.set_menu, width=self.menu_area.winfo_width()/4)
         self.MB1 = ctk.CTkButton(self.submenu, text=" ",  command = lambda: print(""))
         self.MB1.grid(row = 1, column=0, columnspan=3, padx=10, pady=10)
         self.B1.grid(row = 0, column=0, columnspan=3)
@@ -383,13 +385,45 @@ class App():
 
     """ MB Event actions by Menu Category.
     Encrypt & Compress: "Set Encryption", "Remove Encryption", "Compress", "Compress (max)"
-    Pages: "Move up", "Move down", "Delete", "Insert Blank"
-    Insert & Extract: "Insert PDF", "Extract text", "Extract images", "Screenshot Page"
+    Pages: "Move up", "Move down", "Rotate left", "Rotate right"
+    Insert: "Insert PDF", "Insert Blank", "Watermark page" "Watermark document"
+    Extract: "Delete page", "Extract text", "Extract images", "Screenshot Page"
     Meta Data: "Set Author", "Set Title", "Set Subject", "Add Keywords"
     """
 
+    def event_rotate_left(self, *args):
+        """ Rotate the page left by 90 degrees. """
+        self.mods_made = True # A modification has been made to the document.
+        rotater = Page_Rotate_PDF(self.doc, None)
+        rotater.rotate_l(self.page_i)
+        self.doc = rotater.get()
+        self.update_page(self.page_i)
+    def event_rotate_right(self, *args):
+        """ Rotate the page right by 90 degrees. """
+        self.mods_made = True # A modification has been made to the document.
+        rotater = Page_Rotate_PDF(self.doc, None)
+        rotater.rotate_r(self.page_i)
+        self.doc = rotater.get()
+        self.update_page(self.page_i)
+    def event_watermark_page(self, *args):
+        """ Watermark the current page. """
+        self.mods_made = True # A modification has been made to the document.
+        watermarker = Watermark_PDF(self.doc, None)
+        watermarker.watermark(self.page_i, gui_get_file(limit_filetypes=[("PNG",".png"), ("JPEG",".jpg")])[0])
+        self.doc = watermarker.get()
+        self.update_page(self.page_i)
+
+    def event_watermark_document(self, *args):
+        """ Watermark all pages. """
+        self.mods_made = True # A modification has been made to the document.
+        watermarker = Watermark_PDF(self.doc, None)
+        watermarker.watermark(self.page_i, gui_get_file(limit_filetypes=[("PNG",".png"), ("JPEG",".jpg")])[0], all_pages=True)
+        self.doc = watermarker.get()
+        self.update_page(self.page_i)
+
     def event_set_meta_author(self, *args):
         """ Set the metadata "author" tag. """
+        self.mods_made = True # A modification has been made to the document.
         author_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Author: ")
         author = author_dialog.get_input()
         if author.strip() != "":
@@ -397,6 +431,7 @@ class App():
 
     def event_set_meta_title(self, *args):
         """ Set the metadata "title" tag. """
+        self.mods_made = True # A modification has been made to the document.
         title_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Author: ")
         title = title_dialog.get_input()
         if title.strip() != "":
@@ -404,6 +439,7 @@ class App():
 
     def event_set_meta_subject(self, *args):
         """ Set the metadata "subject" tag. """
+        self.mods_made = True # A modification has been made to the document.
         subject_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Subject: ")
         subject = subject_dialog.get_input()
         if subject.strip() != "":
@@ -411,6 +447,7 @@ class App():
 
     def event_set_meta_keywords(self, *args):
         """ Set the metadata "keywords" tag. """
+        self.mods_made = True # A modification has been made to the document.
         keywords_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Keywords: ")
         keywords = keywords_dialog.get_input()
         if keywords.strip() != "":

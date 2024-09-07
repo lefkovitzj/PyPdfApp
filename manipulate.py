@@ -1,6 +1,6 @@
 """
     Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/29/2024
+    File Last Modified: 9/7/2024
     Project Name: PyPdfApp
     File Name: manipulate.py
 """
@@ -29,11 +29,11 @@ class Page_Rotate_PDF():
     def rotate_l(self, page_i):
         # Rotate the page (left).
         spec_page = self.doc[page_i]
-        spec_page.set_rotation(270)
+        spec_page.set_rotation(spec_page.rotation - 90)
     def rotate_r(self, page_i):
         # Rotate the page (right).
         spec_page = self.doc[page_i]
-        spec_page.set_rotation(90)
+        spec_page.set_rotation(spec_page.rotation + 90)
     def get(self):
         # Get the updated document object.
         return self.doc
@@ -99,7 +99,8 @@ class Watermark_PDF():
     def watermark(self, page_i, source_image, all_pages=False):
         # Insert a the watermark on the selected page(s).
         if not all_pages:
-            if not page.is_wrapped():
+            page = self.doc[page_i]
+            if not page.is_wrapped:
                 page.wrap_contents()
             page.insert_image(page.bound(), filename = source_image, overlay = True)
         else:

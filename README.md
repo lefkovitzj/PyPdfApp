@@ -153,9 +153,10 @@ The following submenus are available, with different actions for each of the fou
     - [x] Add optional metadata to `save_pdf()` in `save.py`.
 - [x] Add md5 or SHA hash of source code to `settings.json`. (Completed v1.3)
 - [x] Add file tampering checker utility application. (Completed v1.3)
+- [x] Add page rotation feature. (Completed v1.4)
+- [x] Add watermark feature. (Completed v1.4)
 - [ ] Create `configure.py file` with a simple application for modifying data values in `settings.json`.
-- [ ] Add page rotation feature.
-- [ ] Add watermark feature.
+
 
 See the [open issues](https://github.com/lefkovitzj/PyPdfApp/issues) for a full list of proposed features (and known issues).
 

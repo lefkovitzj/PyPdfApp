@@ -155,6 +155,7 @@ The following submenus are available, with different actions for each of the fou
 - [x] Add file tampering checker utility application. (Completed v1.3)
 - [x] Add page rotation feature. (Completed v1.4)
 - [x] Add watermark feature. (Completed v1.4)
+- [ ] Add digital signature creation and verification systsm.
 - [ ] Create `configure.py file` with a simple application for modifying data values in `settings.json`.
 
 

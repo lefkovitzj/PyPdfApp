@@ -1,6 +1,6 @@
 """
     Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 9/7/2024
+    File Last Modified: 12/22/2024
     Project Name: PyPdfApp
     File Name: pypdfgui.py
 """
@@ -29,6 +29,7 @@ from load import open_pdf
 from manipulate import *
 from merge import PDF_Merger
 from save import save_pdf
+from sign import *
 
 class App():
     def __init__(self):
@@ -40,6 +41,9 @@ class App():
         self.file_path, self.doc, self.password = open_pdf()
 
         # Initialize status data for the PDF.
+        self.save_path = f"{self.file_path}"
+        self.signer_private_key_path = None # Store the private key file location for the active Signer Account.
+        self.signer = None
         self.mods_made = False # Document has been modified from its orignal state.
         self.compress_basic = False
         self.compress_max = False
@@ -60,9 +64,9 @@ class App():
                             "Encrypt & Compress":       GUI_Menu("Encryption", self.root, ["Set Encryption", "Remove Encryption", "Compress", "Compress (max)"], [self.event_set_encryption, self.event_remove_encryption, self.event_compress, self.event_compress_max], [True, True, True, True]),
                             "Pages":                    GUI_Menu("Pages", self.root, ["Move up", "Move down", "Rotate right", "Rotate left"], [self.event_move_up, self.event_move_down, self.event_rotate_right, self.event_rotate_left], [True, True, True, True]),
                             "Meta Data":                GUI_Menu("Meta Data", self.root, ["Set Author", "Set Title", "Set Subject", "Add Keywords"], [self.event_set_meta_author, self.event_set_meta_title, self.event_set_meta_subject, self.event_set_meta_keywords], [True, True, True, True]),
-                            "Insert":                   GUI_Menu("Insert &  Extract", self.root, ["Insert PDF", "Insert Blank", "Watermark page", "Watermark document"], [self.event_insert_pdf, self.event_insert_page, self.event_watermark_page, self.event_watermark_document], [True, True, True, True]),
-                            "Extract":                  GUI_Menu("Insert &  Extract", self.root, ["Delete page", "Extract text", "Extract images", "Screenshot Page"], [self.event_delete, self.event_extract_text, self.event_extract_images, self.event_screenshot_page], [True, True, True, True])
-
+                            "Insert":                   GUI_Menu("Insert", self.root, ["Insert PDF", "Insert Blank", "Watermark page", "Watermark document"], [self.event_insert_pdf, self.event_insert_page, self.event_watermark_page, self.event_watermark_document], [True, True, True, True]),
+                            "Extract":                  GUI_Menu("Extract", self.root, ["Delete page", "Extract text", "Extract images", "Screenshot Page"], [self.event_delete, self.event_extract_text, self.event_extract_images, self.event_screenshot_page], [True, True, True, True]),
+                            "Signatures":               GUI_Menu("Signatures", self.root, ["Sign PDF", "Verfiy Signature", "Add Signer Account", "Select Signer Account"], [self.event_sign_pdf, self.event_verify_signature, self.event_add_signer_account, self.event_select_signer_account], [False, True, True, True]),
         }
 
         # Add the menu area.
@@ -102,7 +106,7 @@ class App():
 
         # First menu column.
         self.B1 = ctk.CTkFrame(self.submenu, fg_color="#333333")
-        self.mode = ctk.CTkOptionMenu(self.B1, values=["Pages", "Encrypt & Compress", "Insert", "Extract", "Meta Data"], command=self.set_menu, width=self.menu_area.winfo_width()/4)
+        self.mode = ctk.CTkOptionMenu(self.B1, values=["Pages", "Encrypt & Compress", "Insert", "Extract", "Meta Data", "Signatures"], command=self.set_menu, width=self.menu_area.winfo_width()/4)
         self.MB1 = ctk.CTkButton(self.submenu, text=" ",  command = lambda: print(""))
         self.MB1.grid(row = 1, column=0, columnspan=3, padx=10, pady=10)
         self.B1.grid(row = 0, column=0, columnspan=3)
@@ -198,6 +202,20 @@ class App():
         # Start the main application loop.
         self.root.mainloop()
 
+    def create_popup(self, popupTitle, popupText, popupCloseMessage):
+        popup = ctk.CTkToplevel(self.root)
+        popup.title("PyPdfApp")
+
+        # Add content to the popup
+        titleLabel = ctk.CTkLabel(popup, text=popupTitle)
+        titleLabel.pack(padx=20, pady=20)
+        label = ctk.CTkLabel(popup, text=popupText)
+        label.pack(padx=20, pady=20)
+
+        button = ctk.CTkButton(popup, text=popupCloseMessage, command=popup.destroy)
+        button.pack(pady=10)
+
+
     def on_startup_update_check(self):
         """ Verify that the software is up to date with the most recent version. """
         settings_url = self.settings["newest_version_settings_url"] # Load from settings.json's data.
@@ -260,7 +278,7 @@ class App():
 
     def save_event(self, *args):
         """ Process a save event. """
-        save_pdf(self.doc, self.custom_metadata, self.compress_basic, self.compress_max, self.password, forced_save=False)
+        self.save_path = save_pdf(self.doc, self.custom_metadata, self.compress_basic, self.compress_max, self.password, forced_save=False)
         self.mods_made = False
 
     def set_menu(self, choice):
@@ -374,7 +392,7 @@ class App():
 
     def save_pdf(self, event):
         """ Save the modified pdf document. """
-        save_pdf(self.doc, self.custom_metadata, compress_basic = self.compress_basic, compress_max = self.compress_max, password = self.password)
+        self.save_path = save_pdf(self.doc, self.custom_metadata, compress_basic = self.compress_basic, compress_max = self.compress_max, password = self.password)
 
 
     def app_exit_event(self):
@@ -587,3 +605,50 @@ class App():
             pix = page.get_pixmap()
             pix.save(fname)
             subprocess.Popen(f'explorer "{os.getcwd()}"') # Open file explorer to the folder location.
+
+    def event_add_signer_account(self, *args):
+        """ Create the public and private keys necessary for PDF signature. """
+        uname = None
+        pwd = None
+        pwd_verify = None
+        while uname == None or uname.strip() == "": # Get a username for the Signer Account.
+            uname_dialog = ctk.CTkInputDialog(text="Username", title="Add Signer Account")
+            uname = uname_dialog.get_input()
+        while pwd != pwd_verify or (pwd == None or pwd.strip() == ""): # Get and confirm a password for the Signer Account.
+            pwd = ctk.CTkInputDialog(text="Password", title="Add Signer Account").get_input()
+            pwd_verify = ctk.CTkInputDialog(text="Password (confirm)", title="Add Signer Account").get_input()
+        self.signer_private_key_path = gen_signature_keys(f"{self.settings['pubkey_storage_base']}{uname}.pem", uname, pwd)[1] # Create and register the two keys.
+        self.signer = uname
+        self.menus["Signatures"].states[0] = True
+        self.update_button_states()
+
+    def event_sign_pdf(self, *args):
+        """ Sign a selected PDF with the current Signer Account key file and the necessary password. """
+        if self.mods_made != False:
+            self.save_path = save_pdf(self.doc, self.custom_metadata, self.compress_basic, self.compress_max, self.password, dialog_text = "Filename", dialog_title="Save a Copy to Sign",forced_save = True)
+            self.mods_made = False
+
+        sig_dir = f"PDF Signatures/{self.save_path.split('/')[-1].replace('.pdf', '')}"
+        if not os.path.exists(sig_dir):
+            os.makedirs(sig_dir)
+
+        status = sign_pdf(f"{sig_dir}/{self.signer}.sig", self.save_path, self.signer, ctk.CTkInputDialog(text=f"Password for {self.signer}", title="Sign PDF").get_input(), self.signer_private_key_path)
+        self.create_popup("PDF Signature Creation Status", status, "OK")
+
+    def event_select_signer_account(self, *args):
+        """ Select a key file (.pem) file for a Signer Account. """
+        self.signer_private_key_path = gui_get_file(limit_filetypes=[("PEM", ".pem")])[0]
+        if self.signer_private_key_path != "":
+            self.signer = os.path.split(self.signer_private_key_path)[-1].replace("_private_key.pem", "")
+            self.menus["Signatures"].states[0] = True
+            self.update_button_states()
+
+    def event_verify_signature(self, *args):
+        """ Verify a signature file (.sig) using a selected PDF and the public key from storage.  """
+        signed_pdf = gui_get_file(limit_filetypes=[("PDF", ".pdf")])[0]
+        if signed_pdf != "":
+            signature_file = gui_get_file(limit_filetypes=[("SIG", ".sig")])[0]
+            if signature_file != "":
+                signer = signature_file.split("/")[-1].replace(".sig", "")
+                status = verify_pdf_signature(signature_file, signed_pdf, f"{self.settings['pubkey_storage_base']}{signer}.pem", signer)
+                self.create_popup("PDF Signature Verification Status", status, "OK")

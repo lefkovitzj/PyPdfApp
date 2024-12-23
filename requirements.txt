@@ -3,3 +3,4 @@ pillow
 PyMuPDF
 requests
 pycryptodome
+flask

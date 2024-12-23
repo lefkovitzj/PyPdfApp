@@ -54,6 +54,7 @@ This is an example of `app.py` being used to open the `demo.pdf` file.
 * PyMuPdf
 * Pillow
 * Requests
+* PyCryptodome
 * Flask (optional, used only for the Public Key server)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -85,11 +86,14 @@ Begin by downloading the Python programming language from python.org, and make s
   ```sh
   pip install requests
   ```
+* PyCryptodome
+  ```sh
+  pip install pycryptodome
+  ```
 * Flask (optional, used only for the Public Key server)
   ```sh
   pip install flask
   ```
-
 ### Installation
 
 1. Download all `.py` files in this repository as well as the `settings.json` file.
@@ -131,18 +135,33 @@ The following submenus are available, with different actions for each of the fou
 1. Pages:
    * Move page up
    * Move page down
-   * Delete page
-   * Add blank page
+   * Rotate Left
+   * Rotate Right
 2. Encrypt & Compress:
    * Set PDF encryption
    * Remove PDF encryption
    * Compress PDF (basic)
    * Compress PDF (maximum)
-3. Insert & Extract:
+3. Insert:
    * Insert PDF
-   * Extract text
-   * Extract images
-   * Screenshot page
+   * Insert Blank
+   * Watermark Page
+   * Watermake Document
+4. Extract:
+   * Delete Page
+   * Extract Text
+   * Extract Images
+   * Screenshot Page
+5. Meta Data:
+   * Set Author
+   * Set Title
+   * Set Subject
+   * Add Keywords
+6. Signatures
+   * Sign PDF
+   * Verify Signature
+   * Add Signer Account
+   * Set Signer Account
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -161,7 +180,7 @@ The following submenus are available, with different actions for each of the fou
 - [x] Add file tampering checker utility application. (Completed v1.3)
 - [x] Add page rotation feature. (Completed v1.4)
 - [x] Add watermark feature. (Completed v1.4)
-- [ ] Add digital signature creation and verification systsm.
+- [x] Add digital signature creation and verification systsm.
 - [ ] Create `configure.py file` with a simple application for modifying data values in `settings.json`.
 
 
@@ -215,7 +234,9 @@ Project Link: [https://github.com/lefkovitzj/PyPdfApp](https://github.com/lefkov
 * [PyMuPDF](https://pymupdf.readthedocs.io/), which was used in all the under-the-hood PDF manipulation and access functions.
 * [CustomTkinter](https://customtkinter.tomschimansky.com/), which was used to create most of the modern user interface elements.
 * [Pillow](https://pillow.readthedocs.io/), which was used in the PDF page rendering process.
+* [PyCryptodome](https://www.pycryptodome.org/), which was used in the PDF signature functions.
 * [Requests](https://requests.readthedocs.io/), which was used in the update launcher process.
+* [Flask](https://flask.palletsprojects.com/), which was used for the PDF signer account public key.
 * [othneildrew's Best-README-Template](https://github.com/othneildrew/Best-README-Template/), which was used in a modified form for this project's `README.md` file.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

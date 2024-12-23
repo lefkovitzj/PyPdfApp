@@ -17,5 +17,6 @@
     "license_agreed_to": false,
     "app_max_zoom_scale": 2,
     "ask_save_before_exit": true,
-    "allow_keyboard_events": true
+    "allow_keyboard_events": true,
+    "pubkey_storage_base": ""
 }

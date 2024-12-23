@@ -55,7 +55,7 @@ def gen_signature_keys(new_pubkey_path, uname, pwd):
     post_resource(new_pubkey_path, data)
     return (new_pubkey_path, f"{uname.replace(' ','_')}_private_key.pem") # Return the locations of both files.
 
-def sign_pdf(pdf_path, uname, pwd, privkey_path):
+def sign_pdf(signature_path, pdf_path, uname, pwd, privkey_path):
     """ Sign pdf_path with the account credentials uname and pwd. """
     with open(pdf_path, "rb") as pdf_file: # Load the file data from the PDF path.
         pdf_data = pdf_file.read()
@@ -67,7 +67,8 @@ def sign_pdf(pdf_path, uname, pwd, privkey_path):
     name_signer = DSS.new(key, 'fips-186-3')
     data_signature = data_signer.sign(data_hash) # Sign both values and return them.
     name_signature = name_signer.sign(name_hash)
-    return data_signature, name_signature
+    store_bins(signature_path, data_signature, name_signature)
+    return f"PDF signature by {uname} was stored in file \"{signature_path}\" successfully."
 
 def verify_pdf_signature(signature_path, pdf_path, pubkey_path, name):
     """ Verify the signature of pdf_path by uname's private key. """

@@ -54,6 +54,7 @@ This is an example of `app.py` being used to open the `demo.pdf` file.
 * PyMuPdf
 * Pillow
 * Requests
+* Flask (optional, used only for the Public Key server)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -84,6 +85,11 @@ Begin by downloading the Python programming language from python.org, and make s
   ```sh
   pip install requests
   ```
+* Flask (optional, used only for the Public Key server)
+  ```sh
+  pip install flask
+  ```
+
 ### Installation
 
 1. Download all `.py` files in this repository as well as the `settings.json` file.

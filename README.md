@@ -184,6 +184,7 @@ The following submenus are available, with different actions for each of the fou
 - [ ] Create `configure.py file` with a simple application for modifying data values in `settings.json`.
 - [ ] Manipulate links within a PDF.
 - [ ] Create a "Redact" feature.
+- [ ] Add functionality for multiple PDF files at once.
 
 
 See the [open issues](https://github.com/lefkovitzj/PyPdfApp/issues) for a full list of proposed features (and known issues).

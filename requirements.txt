@@ -2,5 +2,4 @@ customtkinter
 pillow
 PyMuPDF
 requests
-pycryptodome
-flask
+pycrypto

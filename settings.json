@@ -1,22 +1,25 @@
 {
-    "version": "1.4",
+    "version": "1.6",
     "author": "lefkovitzj",
-    "release_date": "2024-09-07",
+    "release_date": "2025-01-04",
     "newest_version_settings_url": "https://raw.githubusercontent.com/lefkovitzj/PyPdfApp/main/settings.json",
     "newest_version_url": "https://github.com/lefkovitzj/PyPdfApp/",
     "source_file_hashes": {
-        "app.py": "05a6226587fc2b99caa9f0f10e2bc730",
+        "app.py": "b59aae4fd80ed9d64741d45e92efe057",
         "extract.py": "3fcf135344a59b719e5e9736c45877c3",
         "gui.py": "e238312c1e35e4f96d8821e7257677d0",
-        "load.py": "a6b9e07a16960c02d4848dba9ad3537c",
+        "links.py": "1004e239e255252afe6dc5c4648ed00a",
+        "load.py": "6f93eececa1dcdd521b137fd10a2b669",
         "manipulate.py": "cdc9954f0cd0534c72be9c48e15e4a27",
         "merge.py": "045650cce3075d5417dec07950f5b44e",
-        "pypdfgui.py": "80a9e0de9e1fb073a2a553cb983ae4f7",
-        "save.py": "7e091e2a31f704d694b2ef0c6f113d89"
+        "pypdfgui.py": "3427161a43512ea08fecaeda33c34f8c",
+        "save.py": "ee0555227d8c7c0de6f027d99d72ac41",
+        "sign.py": "c6568207bfae05c266780f6c35573a11",
+        "utils.py": "a55616d8b31668ca840bc27da60593f7"
     },
     "license_agreed_to": false,
     "app_max_zoom_scale": 2,
     "ask_save_before_exit": true,
     "allow_keyboard_events": true,
-    "pubkey_storage_base": ""
+    "pubkey_storage_base": "/"
 }

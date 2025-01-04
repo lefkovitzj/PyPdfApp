@@ -1,6 +1,6 @@
 """
     Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/29/2024
+    File Last Modified: 1/4/2025
     Project Name: PyPdfApp
     File Name: save.py
 """
@@ -12,7 +12,7 @@ from datetime import date
 import fitz
 import customtkinter as ctk
 
-def save_pdf(fitz_doc, custom_metadata, compress_basic = False, compress_max = False, password = None, dialog_text=None, dialog_title=None, forced_save = True, *args):
+def save_pdf(fitz_doc, custom_metadata, page_points, compress_basic = False, compress_max = False, password = None, dialog_text=None, dialog_title=None, forced_save = True, *args):
     file_path = None
     if dialog_text == None:
         dialog_text = "Filename"
@@ -23,7 +23,7 @@ def save_pdf(fitz_doc, custom_metadata, compress_basic = False, compress_max = F
         file_path = fp_dialog.get_input()
         if forced_save != True: # Exit after one round.
             if file_path == "" or file_path == None:
-                return
+                return None
             else:
                 break
     file_path = file_path.lower().replace(".pdf", "") + ".pdf"
@@ -42,6 +42,11 @@ def save_pdf(fitz_doc, custom_metadata, compress_basic = False, compress_max = F
     custom_metadata["modDate"] = str(date.today())
 
     fitz_doc.set_metadata(custom_metadata)
+    for page_i in range(len(fitz_doc)):
+        page = fitz_doc[page_i]
+        markings = page_points[page_i]
+        page.add_ink_annot(markings)
+
 
     if password != None:
         perm = int( # Set the permissions for the file.
@@ -58,3 +63,5 @@ def save_pdf(fitz_doc, custom_metadata, compress_basic = False, compress_max = F
         fitz_doc.save(file_path, deflate = compress, garbage = garbage_num, encryption = fitz.PDF_ENCRYPT_AES_256, owner_pw=password, user_pw=password, permissions=perm) # Save the document (with encryption).
     else:
         fitz_doc.save(file_path, deflate = compress, garbage = garbage_num) # Save the document.
+            
+    return file_path

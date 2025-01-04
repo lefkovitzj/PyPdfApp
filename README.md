@@ -115,23 +115,28 @@ Start the app as follows:
 * Run the `app.py` file from the command line, your IDE of choice, or simply by opening the file with Python.
 * The app will launch File Explorer, use it to select a PDF file to open.
 
+#### Application GUI
 Once a PDF file is selected, you will see the following user interface sections (visible in demo above):
 * Menu:
   * Select submenu.
-  * Save the file
-  * Navigate through the file
-  * Adjust the page zoom
-  * View the page number
+  * Navigate through a PDF's pages.
+  * Save the open PDF file.
+  * Open a PDF file.
+  * Close the open PDF file.
+  * Adjust the page zoom.
+  * View the page number.
 * Submenu:
   * Button #1
   * Button #2
   * Button #3
   * Button #4
+* File Selection Menu:
+  * Each open PDF file's name is shown, with a leading "*" indicating unsaved changes and a trailing "|" and number indicating a file with the same name as another that is open already.
 * PDF viewer:
   * Page render
   * Scrollbars
 
-The following submenus are available, with different actions for each of the four (4) buttons:
+The following submenus are available, with different actions for each of the four (4) submenu buttons:
 1. Pages:
    * Move page up
    * Move page down
@@ -163,6 +168,17 @@ The following submenus are available, with different actions for each of the fou
    * Add Signer Account
    * Set Signer Account
 
+<br><br>
+#### Application Hotkeys
+Unless disabled in settings.json, the following keyboard shortcuts are available in the application. Please note: most of these are only available when a PDF is open.
+* Control-o: Open a new PDF file.
+* Control-w: Close the open PDF file.
+* Control-s: Save the open PDF file.
+* Right arrow: Navigate to the next page in the PDF file.
+* Left arrow: Navigate to the prior page in the PDF file.
+* Control-plus (Ctrl+): Increase Zoom by 25%.
+* Control-minus (Ctrl-): Decrease Zoom by 25%.
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -181,16 +197,16 @@ The following submenus are available, with different actions for each of the fou
 - [x] Add page rotation feature. (Completed v1.4)
 - [x] Add watermark feature. (Completed v1.4)
 - [x] Add digital signature creation and verification systsm.
-- [ ] Create `configure.py file` with a simple application for modifying data values in `settings.json`.
+- [x] Add a "red pen markup" feature to draw on PDF pages.
+- [x] Add functionality for multiple PDF files at once.
 - [ ] Manipulate links within a PDF.
 - [ ] Create a "Redact" feature.
-- [ ] Add functionality for multiple PDF files at once.
 - [ ] Allow user-adjusted keybinds.
 - [ ] Add functionality to create a new PDF from a blank page.
-- [ ] Add a "red pen markup" feature to draw on PDF pages.
 
 
-See the [open issues](https://github.com/lefkovitzj/PyPdfApp/issues) for a full list of proposed features (and known issues).
+
+See the [open issues](https://github.com/lefkovitzj/PyPdfApp/issues) to add to the list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -204,10 +220,6 @@ Contributions are what make the open source community such an amazing place to l
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
 Don't forget to give the project a star! Thanks again!
 
-1. Make suggestions.
-2. Report bugs.
-3. Fork the Project.
-4. Open a Pull Request.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

@@ -168,7 +168,7 @@ The following submenus are available, with different actions for each of the fou
    * Add Signer Account
    * Set Signer Account
 
-<br>
+<br><br>
 #### Application Hotkeys
 Unless disabled in settings.json, the following keyboard shortcuts are available in the application. Please note: most of these are only available when a PDF is open.
 * Control-o: Open a new PDF file.

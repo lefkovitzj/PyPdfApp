@@ -187,6 +187,7 @@ The following submenus are available, with different actions for each of the fou
 - [ ] Add functionality for multiple PDF files at once.
 - [ ] Allow user-adjusted keybinds.
 - [ ] Add functionality to create a new PDF from a blank page.
+- [ ] Add a "red pen markup" feature to draw on PDF pages.
 
 
 See the [open issues](https://github.com/lefkovitzj/PyPdfApp/issues) for a full list of proposed features (and known issues).

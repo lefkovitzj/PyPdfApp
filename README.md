@@ -42,7 +42,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-<img src="documentation-images/application.png" alt="application demo using demo.pdf file">
+<img src="documentation-images/application.png" alt="Application demo using the demo.pdf file">
 
 This is an example of `app.py` being used to open the `demo.pdf` file.
 

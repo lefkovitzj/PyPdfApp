@@ -203,6 +203,7 @@ Unless disabled in settings.json, the following keyboard shortcuts are available
 - [ ] Create a "Redact" feature.
 - [ ] Allow user-adjusted keybinds.
 - [ ] Add functionality to create a new PDF from a blank page.
+- [ ] Add PDF to DOCX file conversion.
 
 
 

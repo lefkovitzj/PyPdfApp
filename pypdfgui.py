@@ -1,6 +1,6 @@
 """
     Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 1/4/2025
+    File Last Modified: 1/5/2025
     Project Name: PyPdfApp
     File Name: pypdfgui.py
 """
@@ -70,23 +70,25 @@ class App():
         self.prev = ctk.CTkButton(self.menu, text = "<", command = self.previous_page, width = 25)
         self.next = ctk.CTkButton(self.menu, text = ">", command = self.next_page, width = 25)
         self.save = ctk.CTkButton(self.menu, text = "💾", command = self.save_event, width = 25)
+        self.blank = ctk.CTkButton(self.menu, text = "+", command = self.open_blank_pdf, width = 25)
         self.open = ctk.CTkButton(self.menu, text = "📂", command = self.open_new_pdf, width = 25)
         self.close = ctk.CTkButton(self.menu, text = "x", command = self.close_current_pdf, width = 25)
         self.prev.grid(row = 0, column = 2, padx=5)
         self.next.grid(row = 0, column = 3, padx=5)
         self.save.grid(row = 0, column = 4, padx=5)
-        self.open.grid(row = 0, column = 5, padx=5)
-        self.close.grid(row = 0, column = 6, padx=5)
+        self.blank.grid(row = 0, column = 5, padx=5)
+        self.open.grid(row = 0, column = 6, padx=5)
+        self.close.grid(row = 0, column = 7, padx=5)
         self.scale_display = ctk.CTkLabel(self.menu, text = "Zoom: 100%", fg_color = "transparent")
         self.scale_slider = ctk.CTkSlider(self.menu, from_=1, to=int(self.settings["app_max_zoom_scale"]) * 4, command=self.adjust_scale, width=75, number_of_steps = int(self.settings["app_max_zoom_scale"]) * 4 - 1)#, width=self.menu_middle.winfo_width()/4)
-        self.scale_display.grid(row=0, column=7, padx=5)
-        self.scale_slider.grid(row=0, column=8, padx=5)
+        self.scale_display.grid(row=0, column=8, padx=5)
+        self.scale_slider.grid(row=0, column=9, padx=5)
         self.page_count = ctk.CTkLabel(self.menu, text = "page x/x", fg_color = "transparent")
         if self.pdfs.is_empty():
             self.page_count.configure(text=f"Page: 0/0")
         else:
             self.page_count.configure(text=f"Page: {self.pdfs[self.pdf_id].page_i+1}/{len(self.pdfs[self.pdf_id].doc)}")
-        self.page_count.grid(row=0, column=9)
+        self.page_count.grid(row=0, column=10)
         # Add the middle menu content (buttons).
         self.menu_button_1 = ctk.CTkButton(self.submenu, text=" ",  command = lambda: print(""))
         self.menu_button_1.grid(row = 0, column=0, columnspan=3, padx=5, pady=10, sticky="nsew")
@@ -162,6 +164,7 @@ class App():
             self.root.bind("<Control-Key-plus>", self.scale_up)
             self.root.bind("<Control-Key-minus>", self.scale_down)
             self.root.bind("<Control-o>", self.open_new_pdf)
+            self.root.bind("<Control-n>", self.open_blank_pdf)
             self.root.bind("<Control-w>", self.close_current_pdf)
         self.pdf_canvas.bind("<B1-Motion>", self.mouse_add_coords)
         self.pdf_canvas.bind("<ButtonRelease-1>", self.mouse_set_end)
@@ -389,6 +392,23 @@ class App():
                 self.enable_all_keybinds()
             
             self.update_page(self.pdfs[self.pdf_id].page_i)
+    def open_blank_pdf(self, *args):
+        num_current_keys = len(list(self.pdfs.get_keys()))
+        file_path = "New File"
+        doc = create_blank_pdf()
+        password = ""
+        new_pdf = PDF_Doc_Instance(file_path, doc, password)
+        new_id = self.pdfs.add_pdf(new_pdf)
+        self.pdf_id = new_id
+        self.file_selected = f"{new_id}"
+        self.update_file_select()
+        self.file_select_bar.configure(values=self.pdfs.get_keys())
+        
+        if num_current_keys < 1:
+            self.enable_all_buttons()
+            self.enable_all_keybinds()
+        
+        self.update_page(self.pdfs[self.pdf_id].page_i)
     def close_current_pdf(self, *args):
         if not self.has_open_pdf():
             return

@@ -1,6 +1,6 @@
 """
     Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 9/7/2024
+    File Last Modified: 1/6/2025
     Project Name: PyPdfApp
     File Name: manipulate.py
 """
@@ -108,6 +108,28 @@ class Watermark_PDF():
                 if not page.is_wrapped: # Solution for flipped/rotated watermark without reason. Documentation: https://pymupdf.readthedocs.io/en/latest/recipes-common-issues-and-their-solutions.html#misplaced-item-insertions-on-pdf-pages
                     page.wrap_contents()
                 page.insert_image(page.bound(), filename = source_image, overlay = True)
+    def get(self):
+        # Get the updated document object.
+        return self.doc
+    def save(self):
+        # Save the document.
+        self.doc.save(self.save_path)
+
+def create_blank_pdf():
+    """ Return a PDF item with only one blank page. """
+    new_doc = fitz.open()
+    new_doc.new_page()
+    return new_doc
+
+class Create_Blank_PDF():
+    """ Delete pages within the document. """
+    def __init__(self, fitz_doc, save_path):
+        # Initialize the object.
+        self.doc = fitz_doc
+        self.save_path = save_path
+    def insert(self, page_i):
+        # Insert a blank page.
+        self.doc.insert_page(page_i)
     def get(self):
         # Get the updated document object.
         return self.doc

@@ -1,7 +1,7 @@
 {
-    "version": "1.6",
+    "version": "1.7",
     "author": "lefkovitzj",
-    "release_date": "2025-01-04",
+    "release_date": "2025-01-06",
     "newest_version_settings_url": "https://raw.githubusercontent.com/lefkovitzj/PyPdfApp/main/settings.json",
     "newest_version_url": "https://github.com/lefkovitzj/PyPdfApp/",
     "source_file_hashes": {
@@ -10,9 +10,9 @@
         "gui.py": "e238312c1e35e4f96d8821e7257677d0",
         "links.py": "1004e239e255252afe6dc5c4648ed00a",
         "load.py": "6f93eececa1dcdd521b137fd10a2b669",
-        "manipulate.py": "cdc9954f0cd0534c72be9c48e15e4a27",
+        "manipulate.py": "3a7b08abc613291a146d539df469a111",
         "merge.py": "045650cce3075d5417dec07950f5b44e",
-        "pypdfgui.py": "3427161a43512ea08fecaeda33c34f8c",
+        "pypdfgui.py": "8fdfcfe49f446369329f5987e90db221",
         "save.py": "ee0555227d8c7c0de6f027d99d72ac41",
         "sign.py": "c6568207bfae05c266780f6c35573a11",
         "utils.py": "a55616d8b31668ca840bc27da60593f7"

@@ -122,6 +122,7 @@ Once a PDF file is selected, you will see the following user interface sections 
   * Navigate through a PDF's pages.
   * Save the open PDF file.
   * Open a PDF file.
+  * Create a new blank PDF.
   * Close the open PDF file.
   * Adjust the page zoom.
   * View the page number.
@@ -173,6 +174,7 @@ The following submenus are available, with different actions for each of the fou
 Unless disabled in settings.json, the following keyboard shortcuts are available in the application. Please note: most of these are only available when a PDF is open.
 * Control-o: Open a new PDF file.
 * Control-w: Close the open PDF file.
+* Control-n: Create a new blank PDF.
 * Control-s: Save the open PDF file.
 * Right arrow: Navigate to the next page in the PDF file.
 * Left arrow: Navigate to the prior page in the PDF file.
@@ -199,10 +201,10 @@ Unless disabled in settings.json, the following keyboard shortcuts are available
 - [x] Add digital signature creation and verification systsm.
 - [x] Add a "red pen markup" feature to draw on PDF pages.
 - [x] Add functionality for multiple PDF files at once.
+- [x] Add functionality to create a new PDF from a blank page.
 - [ ] Manipulate links within a PDF.
 - [ ] Create a "Redact" feature.
 - [ ] Allow user-adjusted keybinds.
-- [ ] Add functionality to create a new PDF from a blank page.
 - [ ] Add PDF to DOCX file conversion.
 
 

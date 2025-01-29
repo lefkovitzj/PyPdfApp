@@ -206,6 +206,7 @@ Unless disabled in settings.json, the following keyboard shortcuts are available
 - [ ] Create a "Redact" feature.
 - [ ] Allow user-adjusted keybinds.
 - [ ] Add PDF to DOCX file conversion.
+- [ ] Allow printing from within the application.
 
 
 

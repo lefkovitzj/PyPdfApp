@@ -2,4 +2,4 @@ customtkinter
 pillow
 PyMuPDF
 requests
-pycrypto
+pycryptomex

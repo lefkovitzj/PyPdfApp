@@ -48,7 +48,7 @@ def save_pdf(fitz_doc, custom_metadata, page_points, compress_basic = False, com
         page.add_ink_annot(markings)
 
 
-    if password != None:
+    if password != None and password != "":
         perm = int( # Set the permissions for the file.
             fitz.PDF_PERM_ACCESSIBILITY
             | fitz.PDF_PERM_PRINT
@@ -63,5 +63,5 @@ def save_pdf(fitz_doc, custom_metadata, page_points, compress_basic = False, com
         fitz_doc.save(file_path, deflate = compress, garbage = garbage_num, encryption = fitz.PDF_ENCRYPT_AES_256, owner_pw=password, user_pw=password, permissions=perm) # Save the document (with encryption).
     else:
         fitz_doc.save(file_path, deflate = compress, garbage = garbage_num) # Save the document.
-            
+
     return file_path

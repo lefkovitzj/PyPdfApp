@@ -210,6 +210,7 @@ Unless disabled in settings.json, the following keyboard shortcuts are available
 - [ ] Allow user-adjusted keybinds.
 - [ ] Add PDF to DOCX file conversion.
 - [ ] Allow printing from within the application.
+- [ ] Add CLI for some functionality.
 
 
 

@@ -202,14 +202,19 @@ Unless disabled in settings.json, the following keyboard shortcuts are available
 - [x] Add a "red pen markup" feature to draw on PDF pages.
 - [x] Add functionality for multiple PDF files at once.
 - [x] Add functionality to create a new PDF from a blank page.
-- [ ] Manipulate links within a PDF.
-- [ ] Add tooltips to all buttons.
-- [ ] Add quick scroll panel with page previews.
-- [ ] Add feature to create a new PDF from specified pages.
 - [ ] Create a "Redact" feature.
+- [ ] Create a "Highlight" feature.
+- [ ] Manipulate links within a PDF.
+- [ ] Add quick scroll panel with page previews.
+- [ ] Add tooltips to all buttons.
+- [ ] Add settings page.
 - [ ] Allow user-adjusted keybinds.
-- [ ] Add PDF to DOCX file conversion.
+- [ ] Add autosave feature.
+- [ ] Add default page with recently opened list.
+- [ ] Add "Recover Unsaved PDF" feature.
+- [ ] Add feature to create a new PDF from specified pages.
 - [ ] Allow printing from within the application.
+- [ ] Add PDF to DOCX file conversion.
 - [ ] Add CLI for some functionality.
 
 

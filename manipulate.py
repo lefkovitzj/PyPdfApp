@@ -13,6 +13,12 @@ import os
 # Third-party imports.
 import fitz
 
+def create_blank_pdf():
+    """Return a PDF item with only one blank page"""
+    new_doc = fitz.open()
+    new_doc.new_page()
+    return new_doc
+
 def gui_get_file(initial_directory="", limit_filetypes=None):
     """Open file explorer (using tkinter) to select a file"""
     if limit_filetypes is None:
@@ -42,24 +48,6 @@ class PDFManipulator:
         """Save the document."""
         self.doc.save(self.save_path)
 
-class PageRotatePDF(PDFManipulator):
-    """Rotate pages within the document"""
-    def rotate_l(self, page_i):
-        """Rotate the page (left)"""
-        spec_page = self.doc[page_i]
-        spec_page.set_rotation(spec_page.rotation - 90)
-    def rotate_r(self, page_i):
-        """Rotate the page (right)"""
-        spec_page = self.doc[page_i]
-        spec_page.set_rotation(spec_page.rotation + 90)
-
-class PageMovePDF(PDFManipulator):
-    """Re-arrange pages within the document"""
-    def move(self, from_page, to_page):
-        """Move a page"""
-        if from_page <= len(self.doc) and from_page >= 0:
-            self.doc.move_page(from_page, to_page)
-
 class PageDeletePDF(PDFManipulator):
     """Delete pages within the document"""
     def delete(self, page_i):
@@ -71,6 +59,24 @@ class PageInsertBlankPDF(PDFManipulator):
     def insert(self, page_i):
         """Insert a blank page"""
         self.doc.insert_page(page_i)
+
+class PageMovePDF(PDFManipulator):
+    """Re-arrange pages within the document"""
+    def move(self, from_page, to_page):
+        """Move a page"""
+        if from_page <= len(self.doc) and from_page >= 0:
+            self.doc.move_page(from_page, to_page)
+
+class PageRotatePDF(PDFManipulator):
+    """Rotate pages within the document"""
+    def rotate_l(self, page_i):
+        """Rotate the page (left)"""
+        spec_page = self.doc[page_i]
+        spec_page.set_rotation(spec_page.rotation - 90)
+    def rotate_r(self, page_i):
+        """Rotate the page (right)"""
+        spec_page = self.doc[page_i]
+        spec_page.set_rotation(spec_page.rotation + 90)
 
 class WatermarkPDF(PDFManipulator):
     """Watermark pages within the document"""
@@ -88,9 +94,3 @@ class WatermarkPDF(PDFManipulator):
                 if not page.is_wrapped:
                     page.wrap_contents()
                 page.insert_image(page.bound(), filename = source_image, overlay = True)
-
-def create_blank_pdf():
-    """Return a PDF item with only one blank page"""
-    new_doc = fitz.open()
-    new_doc.new_page()
-    return new_doc

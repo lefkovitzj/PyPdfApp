@@ -1,6 +1,6 @@
 """
-    Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/15/2024
+    Author: lefkovitj (https://lefkovitzj.com)
+    File Last Modified: 8/28/2025
     Project Name: PyPdfApp
     File Name: app.py
 """

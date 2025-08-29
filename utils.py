@@ -1,7 +1,15 @@
+"""
+    Author: lefkovitj (https://lefkovitzj.com)
+    File Last Modified: 8/28/2025
+    Project Name: PyPdfApp
+    File Name: utils.py
+"""
+
 import os
 
 class PDF_Doc_Instance():
     def __init__(self, file_path, doc, password ):
+        """Initialize the PDF Document Instance object."""
         self.save_path = file_path
         self.doc = doc
         self.password = password
@@ -17,12 +25,12 @@ class PDF_Doc_Instance():
         self.active_stroke = []
         self.mods_made = False
     def add_page_data(self, at_index):
-        """ Add a new page's data at the specified index. """
+        """Add a new page's data at the specified index"""
         self.freehand_points.insert(at_index, [])
         self.redact_points.insert(at_index, [])
         self.highlight_points.insert(at_index, [])
     def remove_page_data(self, at_index):
-        """ Remove the page's data at the specified index. """
+        """Remove the page's data at the specified index"""
         del self.freehand_points[at_index]
         del self.redact_points[at_index]
         del self.highlight_points[at_index]
@@ -36,7 +44,7 @@ class PDF_Queue():
     def is_empty(self):
         return (self.queue == {})
     def add_pdf(self, pdf_instance):
-        """ Add the PDF to the queue. """
+        """Add the PDF to the queue"""
         if type(pdf_instance) == PDF_Doc_Instance:
             if pdf_instance.name not in self.queue.keys():
                 self.queue[pdf_instance.name] = pdf_instance
@@ -50,7 +58,7 @@ class PDF_Queue():
         else:
             raise Exception("PDF_Queue cannot add objects of type other than PDF_Doc_Instance.")
     def remove_pdf(self, pdf_instance_key):
-        """ Remove the PDF from the queue and process each item's key, updating any duplicate names as needed. """
+        """Remove the PDF from the queue and process each item's key, updating any duplicate names as needed"""
         removed_pdf = self.queue[pdf_instance_key]
         name_to_check = removed_pdf.name
         removed_key_parts = pdf_instance_key.split(" |")
@@ -79,13 +87,13 @@ class PDF_Queue():
 
         self.queue = updated_queue #Update the queue attribute.
     def set_unsaved(self, pdf_instance_key):
-        """ Format to denote that the PDF's current state has not been saved. """
+        """Format to denote that the PDF's current state has not been saved"""
         self.queue[pdf_instance_key].mods_made = True
     def set_saved(self, pdf_instance_key):
-        """ Format to denote that the PDF's current state has been saved. """
+        """Format to denote that the PDF's current state has been saved"""
         self.queue[pdf_instance_key].mods_made = False
     def get_keys(self):
-        """ Get the keys of the queue attribute as a list of strings. """
+        """Get the keys of the queue attribute as a list of strings"""
         return_keys = []
         for key, value in self.queue.items():
             if value.mods_made:
@@ -94,12 +102,12 @@ class PDF_Queue():
                 return_keys.append(key)
         return return_keys
     def get_unsaved(self):
-        """ Get the keys of the queue attribute as a list of strings. """
+        """Get the keys of the queue attribute as a list of strings"""
         return_keys = []
         for key, value in self.queue.items():
             if value.mods_made:
                 return_keys.append(key)
         return return_keys
     def __getitem__(self, key):
-        """ Allow for queue access via [...] syntax. """
+        """Allow for queue access via [...] syntax"""
         return self.queue[key]

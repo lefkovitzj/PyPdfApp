@@ -1,3 +1,10 @@
+"""
+    Author: lefkovitj (https://lefkovitzj.com)
+    File Last Modified: 8/28/2025
+    Project Name: PyPdfApp
+    File Name: sign.py
+"""
+
 import os
 import urllib.request
 import urllib.parse
@@ -19,11 +26,11 @@ def read_bins(file_name):
     return bin1, bin2
 
 def is_url(url):
-    """ Return whether or not the argument is a url. """
+    """Return whether or not the argument is a url"""
     return (urllib.parse.urlparse(url).scheme in ['http', 'https'])
 
 def load_resource(resource_location):
-    """ Load the resource data from the passed location. """
+    """Load the resource data from the passed location"""
     if is_url(resource_location):
         with urllib.request.urlopen(resource_location) as file_obj: # Load from a file hosted at the URL.
             resource_bytes = file_obj.read()
@@ -33,7 +40,7 @@ def load_resource(resource_location):
     return resource_bytes # Return the file as a bytes object.
 
 def post_resource(resource_location, data):
-    """ Post the resource data to the passed location. """
+    """Post the resource data to the passed location"""
     if is_url(resource_location): # Post the resource to the URL
         status = (requests.post(resource_location, data).status_code == requests.codes.ok)
     else: # Post the resource to a file on the device.
@@ -43,7 +50,7 @@ def post_resource(resource_location, data):
     return "Uploaded successfully." if status else "Upload failed."
 
 def gen_signature_keys(new_pubkey_path, uname, pwd):
-    """ Generate the public and private keys for the account with credentials uname and pwd. """
+    """Generate the public and private keys for the account with credentials uname and pwd"""
     mykey = ECC.generate(curve='p256')
     with open(f"{uname.replace(' ','_')}_private_key.pem", "wb") as f: # Export the privkey to a .pem file.
         data = mykey.export_key(format='DER',
@@ -56,7 +63,7 @@ def gen_signature_keys(new_pubkey_path, uname, pwd):
     return (new_pubkey_path, f"{uname.replace(' ','_')}_private_key.pem") # Return the locations of both files.
 
 def sign_pdf(signature_path, pdf_path, uname, pwd, privkey_path):
-    """ Sign pdf_path with the account credentials uname and pwd. """
+    """Sign pdf_path with the account credentials uname and pwd"""
     with open(pdf_path, "rb") as pdf_file: # Load the file data from the PDF path.
         pdf_data = pdf_file.read()
     data_hash = SHA256.new(pdf_data) # Hash both values.
@@ -71,7 +78,7 @@ def sign_pdf(signature_path, pdf_path, uname, pwd, privkey_path):
     return f"PDF signature by {uname} was stored in file \"{signature_path}\" successfully."
 
 def verify_pdf_signature(signature_path, pdf_path, pubkey_path, name):
-    """ Verify the signature of pdf_path by uname's private key. """
+    """Verify the signature of pdf_path by uname's private key"""
     if (os.path.getsize(signature_path) != 128): # Sanity check to ensure that the file has two 64-byte signatures (no more, no less).
         return "Warning: Signature file has been tampered with."
     with open(pdf_path, "rb") as pdf_file: # Load the PDF from a file on the device.

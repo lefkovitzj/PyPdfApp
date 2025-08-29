@@ -1,6 +1,6 @@
 """
-    Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/30/2024
+    Author: lefkovitj (https://lefkovitzj.com)
+    File Last Modified: 8/28/2025
     Project Name: PyPdfApp
     File Name: tamper_check.py
 """
@@ -11,12 +11,12 @@ import hashlib
 import os
 
 def hash_md5(string_to_hash):
-    """ Create a MD5 hash of the string argument. """
+    """Create a MD5 hash of the string argument"""
     hashed = hashlib.md5(string_to_hash.encode("utf-8")).hexdigest()
     return hashed
 
 def generate_all_py_file_hashes(hash_dir="/"):
-    """ Generate a MD5 hash for each .py file in the directory. """
+    """Generate a MD5 hash for each .py file in the directory"""
     hashes = {}
     for dirfile in os.listdir(hash_dir):
         if dirfile.endswith(".py"):
@@ -25,7 +25,7 @@ def generate_all_py_file_hashes(hash_dir="/"):
     return hashes
 
 def main():
-    """ Run the tamper checker for PyPdfApp. """
+    """Run the tamper checker for PyPdfApp"""
     with open("../settings.json", "r") as json_settings:
         settings = json.load(json_settings)
     settings_url = "https://raw.githubusercontent.com/lefkovitzj/PyPdfApp/main/settings.json" # Load from settings.json's data.

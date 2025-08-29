@@ -1,6 +1,6 @@
 """
-    Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/15/2024
+    Author: lefkovitj (https://lefkovitzj.com)
+    File Last Modified: 8/28/2025
     Project Name: PyPdfApp
     File Name: extract.py
 """
@@ -16,12 +16,12 @@ def calculate_pdf_temp_title(action, file_ending=".pdf"):
 
 class PDF_Extractor():
     def __init__(self, fitz_doc):
-        """ Initialize the object. """
+        """Initialize the object"""
         if "temporary_files" not in os.listdir(os.getcwd()): # Ensure that the necessary save folder exists.
             os.makedirs("temporary_files")
         self.doc = fitz_doc
     def extract_text(self, file_loc):
-        """ Extract text from the PDF. """
+        """Extract text from the PDF"""
         file_loc.replace(".txt", "")
         file_loc += ".txt"
         with open(file_loc, "w") as text_file: # Open the output .txt file.
@@ -33,7 +33,7 @@ class PDF_Extractor():
         text_file.close() # Close the .txt file.
         return True, file_loc
     def extract_images(self, file_dir):
-        """ Extract images from the PDF. """
+        """Extract images from the PDF"""
         os.mkdir(file_dir)
         img_num = 1
         for page_i in self.doc: # Iterate through each page.

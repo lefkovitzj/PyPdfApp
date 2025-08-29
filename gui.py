@@ -1,6 +1,6 @@
 """
-    Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 8/15/2024
+    Author: lefkovitj (https://lefkovitzj.com)
+    File Last Modified: 8/28/2025
     Project Name: PyPdfApp
     File Name: gui.py
 """
@@ -33,7 +33,7 @@ class GUI_Menu():
         return self.name
 
 def gui_get_file(initial_directory="", limit_filetypes=[]):
-    """ Open file explorer (using tkinter) to select a file. """
+    """Open file explorer (using tkinter) to select a file"""
     root = Tk() # Create the GUI window.
     root.withdraw()
     complete_file_path = filedialog.askopenfilename(title="File Select", initialdir = os.getcwd() + "/" + initial_directory, filetypes = limit_filetypes) # Select the file.

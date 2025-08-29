@@ -1,6 +1,6 @@
 """
-    Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 1/4/2025
+    Author: lefkovitj (https://lefkovitzj.com)
+    File Last Modified: 8/28/2025
     Project Name: PyPdfApp
     File Name: load.py
 """
@@ -18,7 +18,7 @@ import fitz
 import customtkinter as ctk
 
 def gui_get_file(initial_directory="", limit_filetypes=[]):
-    """ Open file explorer (using tkinter) to select a file. """
+    """Open file explorer (using tkinter) to select a file"""
     root = Tk() # Create the GUI window.
     root.withdraw()
     complete_file_path = filedialog.askopenfilename(title="File Select", initialdir = os.getcwd() + "/" + initial_directory, filetypes = limit_filetypes) # Select the file.

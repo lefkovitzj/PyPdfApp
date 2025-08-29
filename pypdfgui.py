@@ -1,19 +1,16 @@
 """
-    Author: lefkovitj (https://lefkovitzj.github.io)
-    File Last Modified: 4/26/2025
+    Author: lefkovitj (https://lefkovitzj.com)
+    File Last Modified: 8/28/2025
     Project Name: PyPdfApp
     File Name: pypdfgui.py
 """
 
 # Python Standard Library Imports.
-import copy
 import json
 import math
 import os
-import requests
 import subprocess
 import sys
-import traceback
 from tkinter import *
 from tkinter import ttk
 import warnings
@@ -23,8 +20,8 @@ import threading
 # Third-party Module Imports.
 import customtkinter as ctk
 import pymupdf
-import fitz
 import PIL
+import requests
 
 # Project Imports.
 from extract import PDF_Extractor
@@ -37,20 +34,22 @@ from sign import *
 from utils import *
 
 
-def on_enter(event, canvas, rect, set_color):
+def on_enter(_event, canvas, rect, set_color):
+    """Update color of canvas rectangle on mouse hover enter.  """
     canvas.itemconfig(rect, outline=set_color)
     canvas.update()
 
-def on_leave(event, canvas, rect, set_color):
+def on_leave(_event, canvas, rect, set_color):
+    """Update color of canvas rectangle on mouse hover exit.  """
     canvas.itemconfig(rect, outline=set_color)
     canvas.update()
 
 
 class App():
-    """  =========================================  APPLICATION STARTUP ========================================= """
+    """ =========================================  APPLICATION STARTUP ========================================= """
     def __init__(self):
-        """ Internal Application Data & Settings """
-        self.pdfs = PDF_Queue()
+        """Internal Application Data & Settings """
+        self.pdfs = PdfQueue()
         self.pdf_id = None
         self.file_selected = ""
         self.signer_private_key_path = None
@@ -58,14 +57,27 @@ class App():
         self.scale = 1.0
         self.link_images = [] # Must be kept otherwise the link icon flashes in and out.
         self.thread = None
+
+        # Define attributes for later definition.
+        self.save_path = None
+        self.tkimg = None
+        self.redact_toggle = None
+        self.freehand_start_bind = None
+        self.freehand_end_bind = None
+        self.redact_start_bind = None
+        self.redact_end_bind = None
+        self.highlight_toggle = None
+        self.highlight_start_bind = None
+        self.highlight_end_bind = None
+        self.active_highlight_start = None
         # Get the settings file data.
-        with open("settings.json", "r") as json_settings:
+        with open("settings.json", "r", encoding="utf-8") as json_settings:
             self.settings = json.load(json_settings)
         # Startup checks.
         self.needs_update = self.on_startup_update_check()
         self.license_agreed = self.on_startup_license_check()
 
-        """ Application GUI - Layout & Contents """
+        """Application GUI - Layout & Contents """
         # Create the GUI window.
         self.root = ctk.CTk(fg_color="#333333")
         ctk.set_default_color_theme("blue")
@@ -139,7 +151,7 @@ class App():
         # Page Quickselect Images.
         self.page_count = ctk.CTkLabel(self.page_quickset_frame, text = "page x/x", fg_color = "transparent")
         if self.pdfs.is_empty():
-            self.page_count.configure(text=f"Page: 0/0")
+            self.page_count.configure(text="Page: 0/0")
         else:
             self.page_count.configure(text=f"Page: {self.pdfs[self.pdf_id].page_i+1}/{len(self.pdfs[self.pdf_id].doc)}")
         self.page_count.pack()
@@ -160,14 +172,14 @@ class App():
         self.scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="vertical", fg_color="#333333")
         self.scrollbar.pack(side="right", fill="y")
         self.scrollbar.configure(command=self.pdf_canvas.yview)
-        self.Hscrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="horizontal", fg_color="#333333")
-        self.Hscrollbar.pack(side="bottom", fill="x")
-        self.Hscrollbar.configure(command=self.pdf_canvas.xview)
-        self.pdf_canvas.configure(yscrollcommand=self.scrollbar.set, xscrollcommand=self.Hscrollbar.set)
+        self.h_scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="horizontal", fg_color="#333333")
+        self.h_scrollbar.pack(side="bottom", fill="x")
+        self.h_scrollbar.configure(command=self.pdf_canvas.xview)
+        self.pdf_canvas.configure(yscrollcommand=self.scrollbar.set, xscrollcommand=self.h_scrollbar.set)
         self.pdf_canvas.pack(side="left", anchor='center', fill='both', expand=True)
 
 
-        """ Startup Checks - Update & License """
+        # Startup Checks - Update & License.
         # Application update screen.
         if self.needs_update:
             self.update_area = ctk.CTkFrame(self.root)
@@ -184,7 +196,7 @@ class App():
             self.license_area = ctk.CTkFrame(self.root)
             self.license_area.place(anchor="nw", relheight=1.0, relwidth=1.0)
             ctk.CTkLabel(self.license_area, text = "You must agree to the MIT license to continue!", fg_color = "transparent").pack(anchor="nw", fill="x")
-            with open("license.txt", "r") as license_doc:
+            with open("license.txt", "r", encoding="utf-8") as license_doc:
                 license_text = license_doc.read()
             textbox = ctk.CTkTextbox(self.license_area)
             textbox.insert(0.0, license_text)
@@ -192,7 +204,7 @@ class App():
             textbox.pack(anchor="nw", fill="both", expand=True)
             ctk.CTkButton(self.license_area, text="I agree to the MIT License.", command = self.license_agree_event).pack(anchor="nw", fill="x", side="right")
 
-        """ Initial Configuration - Window, Binds, and Graphics """
+        # Initial Configuration - Window, Binds, and Graphics.
         # Set window title.
         self.root.title("PyPdfApp")
         # Set window close functionality.
@@ -239,10 +251,10 @@ class App():
 
 
 
-    """  ================================= ASSORTED APPLICATION FUNCTIONALITY =============================== """
-    """ ------------------------------------------ Buttons & Keybinds ----------------------------------------- """
-    def disable_all_buttons(self, *args):
-        """ Disable all buttons related to manipulating a PDF. Used when no PDF is open. """
+    # ASSORTED APPLICATION FUNCTIONALITY
+    # Buttons & Keybinds
+    def disable_all_buttons(self, *_args):
+        """Disable all buttons related to manipulating a PDF. Used when no PDF is open"""
         if self.mode.get() != "File":
             self.menu = self.menus["File"]
         self.menu_button_1.configure(state="normal")
@@ -254,8 +266,8 @@ class App():
         self.zoom_plus.configure(state="disabled")
         self.zoom_minus.configure(state="disabled")
         self.mode.configure(state="disabled")
-    def enable_all_buttons(self, *args):
-        """ Disable all buttons related to manipulating a PDF. Used when no PDF is open. """
+    def enable_all_buttons(self, *_args):
+        """Disable all buttons related to manipulating a PDF. Used when no PDF is open"""
         self.menu_button_1.configure(state="normal")
         self.menu_button_2.configure(state="normal")
         self.menu_button_3.configure(state="normal")
@@ -265,8 +277,8 @@ class App():
         self.zoom_plus.configure(state="normal")
         self.zoom_minus.configure(state="normal")
         self.mode.configure(state="normal")
-    def disable_all_keybinds(self, *args):
-        """ Disable all keybinds that require an open PDF. Used when no PDF is open. """
+    def disable_all_keybinds(self, *_args):
+        """Disable all keybinds that require an open PDF. Used when no PDF is open"""
         if bool(self.settings["allow_keyboard_events"]):
             self.root.unbind("<Control-s", self.bind_save)
             self.root.unbind("<Left>", self.bind_prev_page)
@@ -280,8 +292,8 @@ class App():
 
         self.quickset_canvas.unbind("<Button-1>")
         self.quickset_canvas.unbind("<MouseWheel>")
-    def enable_all_keybinds(self, *args):
-        """ Enable all keybinds that require an open PDF. Used when the first PDF is (re)opened. """
+    def enable_all_keybinds(self, *_args):
+        """Enable all keybinds that require an open PDF. Used when the first PDF is (re)opened"""
         if bool(self.settings["allow_keyboard_events"]):
             self.bind_save = self.root.bind("<Control-s>", self.save_event)
             self.bind_prev_page = self.root.bind("<Left>", self.previous_page)
@@ -295,13 +307,13 @@ class App():
         self.quickset_canvas.bind("<Button-1>", self.quickset_canvas_clicked)
         self.quickset_canvas.bind("<MouseWheel>", self.quickset_on_mousewheel)
 
-    def link_edit_popup(self, event, rect, initial_url):
-        """ Create a popup window with the passed arguments used to generate the content of the winow. """
+    def link_edit_popup(self, _event, rect, initial_url):
+        """Create a popup window with the passed arguments used to generate the content of the winow"""
         popup = ctk.CTkToplevel(self.root)
         popup.title("PyPdfApp")
         # Add content to the popup
-        titleLabel = ctk.CTkLabel(popup, text="")
-        titleLabel.pack(padx=20, pady=20)
+        popup_title_label = ctk.CTkLabel(popup, text="")
+        popup_title_label.pack(padx=20, pady=20)
         url_input = ctk.CTkEntry(popup)
         url_input.insert(0, initial_url)
         url_input.pack()
@@ -309,23 +321,22 @@ class App():
         label.pack(padx=20, pady=20)
         popup.grab_set()
 
-        save_button = ctk.CTkButton(popup, text="Update Link", command=lambda: self.process_link_update(rect, popup, url_input)) # Close button.
+        save_button = ctk.CTkButton(popup, text="Update Link", command=lambda: self.process_link_update(rect, popup, url_input))
         save_button.pack(pady=0, side="right")
-        close_button = ctk.CTkButton(popup, text="Cancel Changes", command=popup.destroy) # Close button.
+        close_button = ctk.CTkButton(popup, text="Cancel Changes", command=popup.destroy)
         close_button.pack(pady=0, side="left")
 
-    def on_click(self, event, rect):
-        """  """
+    def on_click(self, _event, rect):
+        """Handle click of URL"""
         mydoc = self.pdfs[self.pdf_id].doc
         mypage = self.pdfs[self.pdf_id].page_i
-        for page_i in range(len(mydoc)):
-            page = mydoc[page_i]
+        for page_i, page in enumerate(mydoc):
             if page_i == mypage:
                 for link in page.get_links():
                     if str([corner * self.scale for corner in list(link["from"])]) == rect:
                         webbrowser.open(link["uri"])
     def process_link_update(self, rect, popup, url_input):
-        """ Parse a link update event with a new URL. """
+        """Parse a link update event with a new URL"""
         for page_link in self.pdfs[self.pdf_id].doc[self.pdfs[self.pdf_id].page_i].links():
             if str([corner * self.scale for corner in list(page_link["from"])]) == rect:
                 page_link["uri"] = url_input.get()
@@ -333,21 +344,21 @@ class App():
         self.pdfs[self.pdf_id].doc.reload_page(self.pdfs[self.pdf_id].doc[self.pdfs[self.pdf_id].page_i])
         self.set_unsaved()
         popup.destroy()
-    def create_popup(self, popupTitle, popupText, popupCloseMessage):
-        """ Create a popup window with the passed arguments used to generate the content of the winow. """
+    def create_popup(self, popup_title, popup_text, popup_close_message):
+        """Create a popup window with the passed arguments used to generate the content of the winow"""
         popup = ctk.CTkToplevel(self.root)
         popup.title("PyPdfApp")
         # Add content to the popup
-        titleLabel = ctk.CTkLabel(popup, text=popupTitle)
-        titleLabel.pack(padx=20, pady=20)
-        label = ctk.CTkLabel(popup, text=popupText)
+        popup_title_label = ctk.CTkLabel(popup, text=popup_title)
+        popup_title_label.pack(padx=20, pady=20)
+        label = ctk.CTkLabel(popup, text=popup_text)
         label.pack(padx=20, pady=20)
-        button = ctk.CTkButton(popup, text=popupCloseMessage, command=popup.destroy) # Close button.
+        button = ctk.CTkButton(popup, text=popup_close_message, command=popup.destroy) # Close button.
         button.pack(pady=10)
     def window_close_popup(self):
-        """ Create a popup window with the passed arguments used to generate the content of the winow. """
+        """Create a popup window with the passed arguments used to generate the content of the winow"""
         unsaved = self.pdfs.get_unsaved()
-        if unsaved != []:
+        if unsaved:
             popup = ctk.CTkToplevel(self.root)
             popup.title("PyPdfApp - Save & Exit")
             # Add content to the popup
@@ -364,80 +375,82 @@ class App():
         else:
             sys.exit()
 
-    """ ---------------------------------------------- Save Status -------------------------------------------- """
+    # Save Status
     def set_saved(self):
-        """ Update the file and GUI for a save event. """
+        """Update the file and GUI for a save event"""
         if self.pdfs[self.pdf_id].mods_made:
             self.pdfs.set_saved(self.pdf_id)
             self.file_select_bar.configure(values=self.pdfs.get_keys())
             self.update_file_select()
     def set_unsaved(self):
-        """ Update the file and GUI for a new modification. """
+        """Update the file and GUI for a new modification"""
         if not self.pdfs[self.pdf_id].mods_made:
             self.pdfs.set_unsaved(self.pdf_id)
             self.file_select_bar.configure(values=self.pdfs.get_keys())
             self.update_file_select()
-    """ -------------------------------------------- Boolean Checks ------------------------------------------- """
-    def has_open_pdf(self, *args):
-        """ Return True if a PDF is open in the GUI. """
+    # Boolean Checks
+    def has_open_pdf(self, *_args):
+        """Return True if a PDF is open in the GUI"""
         try:
-            return isinstance(self.pdfs[self.pdf_id], PDF_Doc_Instance)
+            return isinstance(self.pdfs[self.pdf_id], PdfDocInstance)
         except:
             return False
 
 
-    """  ==================================== STARTUP CHECKS FUNCTIONALITY ================================== """
-    """ ----------------------------------------------- Update ----------------------------------------------- """
+    # STARTUP CHECKS FUNCTIONALITY
+    # Update
     def on_startup_update_check(self):
-        """ Verify that the software is up to date with the most recent version. """
-        settings_url = self.settings["newest_version_settings_url"] # Load from settings.json's data.
+        """Verify that the software is up to date with the most recent version"""
+        # Load from settings.json's data.
+        settings_url = self.settings["newest_version_settings_url"]
         version = self.settings["version"]
         try:
-            url_data = requests.get(settings_url).json() # Get the data at "newest_version_settings_url" as JSON data.
-            if url_data["version"] != version: # The version does not match.
+            # Get the data at "newest_version_settings_url" as JSON data.
+            url_data = requests.get(settings_url, timeout=10).json()
+            if url_data["version"] != version:
                 return True
             return False
         except: # Request failed due to lack of internet connection or missing online file.
             return False
     def update_skip_event(self):
-        """ Process an update skip button event. """
+        """Process an update skip button event"""
         try: # Frame exists, destroy it and its contents.
             self.update_area.destroy()
         except: # Frame was not created, should never happen unless source code is tampered with.
             pass
     def update_web_event(self):
-        """ Process an web update button event. """
+        """Process an web update button event"""
         webbrowser.open(self.settings["newest_version_url"])
         sys.exit()
-    """ ------------------------------------------------ License --------------------------------------------- """
+    # License
     def on_startup_license_check(self):
-        """ Verify that the user has already agreed to the MIT License terms and conditions. """
-        if self.settings["license_agreed_to"] == True: # The license has been agreed to.
+        """Verify that the user has already agreed to the MIT License terms and conditions"""
+        if self.settings["license_agreed_to"] is True: # The license has been agreed to.
             return True
         return False
     def license_agree_event(self):
-        """ Process a license agreement button event. """
+        """Process a license agreement button event"""
         try: # Frame exists, destroy it and its contents.
             self.license_area.destroy()
             self.settings["license_agreed_to"] = True
-            with open("settings.json", "w") as json_settings:
+            with open("settings.json", "w", encoding="utf-8") as json_settings:
                 json.dump(self.settings, json_settings, indent=4)
                 json_settings.save()
         except: # Frame was not created, should never happen unless source code is tampered with.
             pass
 
 
-    """  ========================================= MENU FUNCTIONALITY ======================================== """
-    """ ------------------------------------------ Window Exit Event ---------------------------------------- """
+    # MENU FUNCTIONALITY
+    # Window Exit Event
     def app_exit_event(self):
-        """ Process an appliction exit event. """
+        """Process an appliction exit event"""
         if self.has_open_pdf():
             self.window_close_popup()
         else:
             sys.exit()
-    """ ---------------------------------------------- Top Menu --------------------------------------------- """
+    # Top Menu
     def set_menu(self, choice):
-        """ Proces a menu selection event. """
+        """Proces a menu selection event"""
         self.menu = self.menus[choice]
         updated_texts = self.menu.get_button_texts()
         updated_binds = self.menu.get_button_commands()
@@ -446,36 +459,36 @@ class App():
         self.menu_button_2.configure(text = updated_texts[1], command=updated_binds[1], state = updated_states[1])
         self.menu_button_3.configure(text = updated_texts[2], command=updated_binds[2], state = updated_states[2])
         self.menu_button_4.configure(text = updated_texts[3], command=updated_binds[3], state = updated_states[3])
-    def previous_page(self, *args):
-        """ Change the page (-). """
+    def previous_page(self, *_args):
+        """Change the page (-)"""
         page_i = self.pdfs[self.pdf_id].page_i
         if page_i-1 >= 0:
             self.pdfs[self.pdf_id].page_i = page_i-1
             self.update_page(self.pdfs[self.pdf_id].page_i)
-    def next_page(self, *args):
-        """ Change the page (+). """
+    def next_page(self, *_args):
+        """Change the page (+)"""
         page_i = self.pdfs[self.pdf_id].page_i
         if page_i+1 <= len(self.pdfs[self.pdf_id].doc)-1:
             self.pdfs[self.pdf_id].page_i = page_i+1
             self.update_page(self.pdfs[self.pdf_id].page_i)
-    def save_event(self, *args):
-        """ Process a save event. """
+    def save_event(self, *_args):
+        """Process a save event"""
         self.save_path = save_pdf(self.pdfs[self.pdf_id], forced_save=False)
-        if self.save_path != None:
+        if self.save_path is not None:
             self.set_saved()
-    def save_pdf(self, event):
-        """ Save the modified pdf document. """
+    def save_pdf(self, _event):
+        """Save the modified pdf document"""
         self.save_path = save_pdf(self.pdfs[self.pdf_id])
-        if self.save_path != None:
+        if self.save_path is not None:
             self.set_saved()
-    def open_new_pdf(self, *args):
-        """ Open a new PDF with the file selector. """
+    def open_new_pdf(self, *_args):
+        """Open a new PDF with the file selector"""
         num_current_keys = len(list(self.pdfs.get_keys()))
         result = open_pdf()
 
-        if result != None: # Check that a file was actually selected.
+        if result is not None: # Check that a file was actually selected.
             file_path, doc, password = result
-            new_pdf = PDF_Doc_Instance(file_path, doc, password)
+            new_pdf = PdfDocInstance(file_path, doc, password)
             new_id = self.pdfs.add_pdf(new_pdf)
             self.pdf_id = new_id
             self.file_selected = f"{new_id}"
@@ -491,17 +504,19 @@ class App():
 
             self.update_page(self.pdfs[self.pdf_id].page_i)
             self.load_quickset()
+
     def load_quickset(self):
-        """ Use multithreading to load the quickset images on the fly, as large files will take a while to do this. """
+        """Use multithreading to load the quickset images on the fly, as large files will take a while to do this"""
         self.thread = threading.Thread(target=self.update_page_quickset_images)
         self.thread.start()
-    def open_blank_pdf(self, *args):
-        """ Open a new PDF with one blank page. """
+
+    def open_blank_pdf(self, *_args):
+        """Open a new PDF with one blank page"""
         num_current_keys = len(list(self.pdfs.get_keys()))
         file_path = "New File"
         doc = create_blank_pdf()
         password = ""
-        new_pdf = PDF_Doc_Instance(file_path, doc, password)
+        new_pdf = PdfDocInstance(file_path, doc, password)
         new_id = self.pdfs.add_pdf(new_pdf)
         self.pdf_id = new_id
         self.file_selected = f"{new_id}"
@@ -514,11 +529,11 @@ class App():
 
         self.update_page(self.pdfs[self.pdf_id].page_i)
         self.load_quickset()
-    def close_current_pdf(self, *args):
-        """ Close the current PDF only. """
+
+    def close_current_pdf(self, *_args):
+        """Close the current PDF only"""
         if not self.has_open_pdf():
             return
-        removed_pdf_id = "".join([char for char in list(self.pdf_id)])
         current_keys_list = self.pdfs.get_keys()
         num_current_keys = len(current_keys_list)
         current_index = current_keys_list.index(self.file_selected)
@@ -531,7 +546,7 @@ class App():
         self.quickset_canvas.delete("all") # Start with an empty canvas.
 
         if num_current_keys <= 1: # Handle closing of last file.
-            self.page_count.configure(text=f"Page: 0/0")
+            self.page_count.configure(text="Page: 0/0")
             self.disable_all_buttons()
             self.disable_all_keybinds()
             self.pdf_canvas.delete('all')
@@ -544,8 +559,9 @@ class App():
                 self.update_page(self.pdfs[self.pdf_id].page_i)
             self.update_file_select()
             self.load_quickset()
-    def scale_up(self, *args):
-        """ Process a scale up event. """
+
+    def scale_up(self, *_args):
+        """Process a scale up event"""
         if self.scale < int(self.settings["app_max_zoom_scale"]):
             if self.scale == 0.25: # Enable scale down.
                 self.zoom_minus.configure(state="normal")
@@ -553,8 +569,9 @@ class App():
             if self.scale == int(self.settings["app_max_zoom_scale"]): # Disable scale up.
                 self.zoom_plus.configure(state="disabled")
             self.update_scale()
-    def scale_down(self, *args):
-        """ Process a scale down event. """
+
+    def scale_down(self, *_args):
+        """Process a scale down event"""
         if self.scale > 0.25:
             if self.scale == int(self.settings["app_max_zoom_scale"]): # Enable scale up.
                 self.zoom_plus.configure(state="normal")
@@ -562,9 +579,9 @@ class App():
             if self.scale == 0.25: # Disable scale down.
                 self.zoom_minus.configure(state="disabled")
             self.update_scale()
-    """ ------------------------------------------- File Select Menu ----------------------------------------- """
+    # File Select Menu
     def file_selector_callback(self, value):
-        """ Change which PDF is being viewed currently. """
+        """Change which PDF is being viewed currently"""
         self.pdf_id = value.replace('*', '')
         self.file_selected = value
         self.file_select_bar.set(value)
@@ -572,10 +589,11 @@ class App():
         self.load_quickset()
 
 
-    """  ==================================== DISPLAY UPDATE FUNCTIONALITY ================================== """
-    def update_page_quickset_images(self, *args):
-        """ Update the images based on the scroll position of the hscrollbar."""
-        # NOTE: Only call this function using threading, due to running in O(n) with the document page number as n.
+    # DISPLAY UPDATE FUNCTIONALITY
+    def update_page_quickset_images(self, *_args):
+        """Update the images based on the scroll position of the h_scrollbar."""
+        # Only call this function using threading,
+        # due to running in O(n) with the document page number as n.
         try:
             num_pages = len(self.pdfs[self.pdf_id].doc)
             self.quickset_canvas.delete("all") # Start with an empty canvas.
@@ -598,37 +616,57 @@ class App():
                 else:
                     mode = "RGB"
                 img = PIL.Image.frombytes(mode, [pix.width, pix.height], pix.samples)
-                img = img.resize((_preview_width, int(pix.height * (_preview_width/pix.width))), resample=PIL.Image.Resampling.NEAREST) # Resize and prepare the pdf page image.
+                # Resize and prepare the pdf page image.
+                img = img.resize(
+                    (_preview_width, int(pix.height * (_preview_width/pix.width))),
+                     resample=PIL.Image.Resampling.NEAREST
+                )
                 tkimg = PIL.ImageTk.PhotoImage(img)
 
-                with warnings.catch_warnings(): # Prevent console warning for CTkLabel with non-CTkImage as "image" argument. Solution found at: https://stackoverflow.com/questions/14463277/how-to-disable-python-warnings
+                # Prevent console warning for CTkLabel with non-CTkImage as "image" argument.
+                # Solution found at: https://stackoverflow.com/questions/14463277/how-to-disable-python-warnings
+                with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
-                    pic = ctk.CTkLabel(self.quickset_canvas, text=f"{i}", image = tkimg) # Add the pdf page image.
-                    self.quickset_canvas.create_text(_center_x, i * (300 + 20) + 15,fill="white",font="Times 24 bold",text=f"{i + 1}")
-                    self.quickset_canvas.create_image(_preview_x, i * (300 + 20) + 35, image=tkimg, anchor="nw", tag="pdf_img") # Add the image to the canvas.
+                    self.quickset_canvas.create_text(
+                        _center_x,
+                        i * (300 + 20) + 15,
+                        fill="white",
+                        font="Times 24 bold",
+                        text=f"{i + 1}"
+                    )
+                    self.quickset_canvas.create_image(
+                        _preview_x,
+                        i * (300 + 20) + 35,
+                        image=tkimg,
+                        anchor="nw",
+                        tag="pdf_img"
+                    ) # Add the image to the canvas.
             self.quickset_canvas.config(scrollregion=(0, 0, 250, num_pages * 320))
-        except IndexError: # Raised when the active PDF is switched while the thread is still running.
+        # Raised when the active PDF is switched while the thread is still running.
+        except IndexError:
             return
 
-    def update_quickset(self, *args):
-        """ Update the images based on the scroll position of the hscrollbar."""
+    def update_quickset(self, *_args):
+        """Update the images based on the scroll position of the h_scrollbar."""
         canvas_start = (self.quickset_canvas.canvasx(0), self.quickset_canvas.canvasy(0))
-        canvas_end = (self.quickset_canvas.canvasx(self.quickset_canvas.winfo_width()), self.quickset_canvas.canvasy(self.quickset_canvas.winfo_height()))
+        canvas_end = (self.quickset_canvas.canvasx(self.quickset_canvas.winfo_width()),
+                      self.quickset_canvas.canvasy(self.quickset_canvas.winfo_height())
+        )
 
         first_visible_page_i = math.floor((canvas_start[1]) / 320)
         last_visible_page_i = math.floor((canvas_end[1]-15) / 320)
 
         _preview_width = 200
-        _center_x = self.quickset_canvas.winfo_width() / 2
         _preview_x = (self.quickset_canvas.winfo_width() - _preview_width) / 2
-        _preview_y = self.quickset_scrollbar.winfo_height()
 
         visible_pages = []
-        pages_range = list(range(last_visible_page_i - first_visible_page_i)) + [self.pdfs[self.pdf_id].page_i]
+        pages_range = list(
+            range(last_visible_page_i - first_visible_page_i)
+        ) + [self.pdfs[self.pdf_id].page_i]
         for page_num in pages_range:
             if page_num < len(self.pdfs[self.pdf_id].doc):
                 visible_pages.append(page_num)
-                
+
         for i in visible_pages: # Do this for the visible pages and the current page.
             page_i = first_visible_page_i + i
 
@@ -639,14 +677,27 @@ class App():
             else:
                 mode = "RGB"
             img = PIL.Image.frombytes(mode, [pix.width, pix.height], pix.samples)
-            img = img.resize((_preview_width, int(pix.height * (_preview_width/pix.width))), resample=PIL.Image.Resampling.NEAREST) # Resize and prepare the pdf page image.
+             # Resize and prepare the pdf page image.
+            img = img.resize(
+                (_preview_width,
+                 int(pix.height * (_preview_width/pix.width))
+                ),
+                resample=PIL.Image.Resampling.NEAREST)
             scale = _preview_width / pix.width
 
             tkimg = PIL.ImageTk.PhotoImage(img)
 
-            with warnings.catch_warnings(): # Prevent console warning for CTkLabel with non-CTkImage as "image" argument. Solution found at: https://stackoverflow.com/questions/14463277/how-to-disable-python-warnings
+            # Prevent console warning for CTkLabel with non-CTkImage as "image" argument.
+            # Solution found at: https://stackoverflow.com/questions/14463277/how-to-disable-python-warnings
+            with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                self.quickset_canvas.create_image(_preview_x, (i + first_visible_page_i) * (320) + 35, image=tkimg, anchor="nw", tag="pdf_img") # Add the image to the canvas.
+                self.quickset_canvas.create_image(
+                    _preview_x,
+                    (i + first_visible_page_i) * (320) + 35,
+                    image=tkimg,
+                    anchor="nw",
+                    tag="pdf_img"
+                ) # Add the image to the canvas.
 
             # Update the quickset for various markup types.
             self.update_quickset_freehand(page_i, scale, _preview_width, _preview_x)
@@ -654,12 +705,18 @@ class App():
             self.update_quickset_redact(page_i, scale, _preview_width, _preview_x)
 
     def update_quickset_freehand(self, page_i, scale, width_x, start_x):
-        """ Update the freehand drawings for the specified page on the quickset. """
+        """Update the freehand drawings for the specified page on the quickset"""
         for freehand_point_set in self.pdfs[self.pdf_id].freehand_points[page_i]:
             point_set = []
             for point in freehand_point_set:
-                scaled_point = (point[0] * scale + start_x, (point[1] * scale) + (page_i)*(320) + 35)
-                if scaled_point[0] < start_x or scaled_point[0] > width_x+start_x or scaled_point[1]-(35 + 320 * (page_i)) > 320 or scaled_point[1]-(35 + 320 * (page_i)) < 0:
+                scaled_point = (
+                    point[0] * scale + start_x,
+                    (point[1] * scale) + (page_i)*(320) + 35
+                )
+                if (scaled_point[0] < start_x
+                    or scaled_point[0] > width_x+start_x
+                    or scaled_point[1]-(35 + 320 * (page_i)) > 320
+                    or scaled_point[1]-(35 + 320 * (page_i)) < 0):
                     # Point is outside the page bounding box, and therefore invalid.
                     pass
                 else:
@@ -667,13 +724,16 @@ class App():
             if len(point_set) > 1:
                 self.quickset_canvas.create_line(point_set)
     def update_quickset_redact(self, page_i, scale, width_x, start_x):
-        """ Update the redacts for the specified page on the quickset. """
+        """Update the redacts for the specified page on the quickset"""
         for redact_point_set in self.pdfs[self.pdf_id].redact_points[page_i]:
             point_set = []
             for point in redact_point_set:
                 print(point)
                 scaled_point = (point[0] * scale + start_x, (point[1] * scale) + (page_i)*(320) + 35)
-                if scaled_point[0] < start_x or scaled_point[0] > width_x+start_x or scaled_point[1]-(35 + 320 * (page_i)) > 320 or scaled_point[1]-(35 + 320 * (page_i)) < 0:
+                if (scaled_point[0] < start_x
+                    or scaled_point[0] > width_x+start_x
+                    or scaled_point[1]-(35 + 320 * (page_i)) > 320
+                    or scaled_point[1]-(35 + 320 * (page_i)) < 0):
                     # Point is outside the page bounding box, and therefore invalid.
                     pass
                 else:
@@ -681,10 +741,8 @@ class App():
             if len(point_set) > 1:
                 self.pdf_canvas.create_rectangle(point_set, fill="black", outline="black")
     def update_quickset_highlight(self, page_i, scale, width_x, start_x):
-        """ Update the highlights for the specified page on the quickset. """
+        """Update the highlights for the specified page on the quickset"""
         for highlight_point in self.pdfs[self.pdf_id].highlight_points[page_i]:
-            
-            
             scaled_point = (highlight_point[0] * scale + start_x, (highlight_point[1] * scale) + (page_i)*(320) + 35, highlight_point[2] * scale + start_x, (highlight_point[3] * scale) + (page_i)*(320) + 35)
             if scaled_point[0] < start_x or scaled_point[0] > width_x+start_x or scaled_point[1]-(35 + 320 * (page_i)) > 320 or scaled_point[1]-(35 + 320 * (page_i)) < 0:
                 # Point is outside the page bounding box, and therefore invalid.
@@ -693,7 +751,7 @@ class App():
                 self.pdf_canvas.create_rectangle(scaled_point, fill="yellow", outline="yellow", stipple="gray50")
 
     def quickset_canvas_clicked(self, event):
-        """ Process a click within the quickset canvas, select the correct page. """
+        """Process a click within the quickset canvas, select the correct page"""
         event_y = self.quickset_canvas.canvasy(event.y)
         if event_y <= 35:
             page = 0
@@ -704,14 +762,14 @@ class App():
         self.pdfs[self.pdf_id].page_i = page
         self.update_page(self.pdfs[self.pdf_id].page_i)
     def quickset_on_mousewheel(self, event):
-        """ Process a scroll event within the quickset canvas, adjust its position. """
+        """Process a scroll event within the quickset canvas, adjust its position"""
         self.quickset_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def update_button_states(self):
-        """ Wrapper for set_menu, used in update_page. """
+        """Wrapper for set_menu, used in update_page"""
         self.set_menu(self.mode.get())
     def update_file_select(self):
-        """ Update the file selection menu bar. """
+        """Update the file selection menu bar"""
         if f"*{self.pdf_id}" in self.pdfs.get_keys():
             self.file_select_bar.set(f"*{self.pdf_id}")
             self.file_selected = f"*{self.pdf_id}"
@@ -719,7 +777,7 @@ class App():
             self.file_select_bar.set(self.pdf_id)
             self.file_selected = f"{self.pdf_id}"
     def update_scale(self):
-        """ Update the zoom scale text. """
+        """Update the zoom scale text"""
         self.update_page(self.pdfs[self.pdf_id].page_i)
         if self.scale < 1:
             self.scale_display.configure(text=f"Zoom:  {self.scale * 100}%") # Has extra space (" ") to account for missing hundreds place digit.
@@ -731,7 +789,7 @@ class App():
             self.root.minsize(int(new_width), 250)
 
     def update_image(self, img, pix):
-        """ Compute and update the PDF page render. """
+        """Compute and update the PDF page render"""
         self.root.update()
         self.pdf_canvas.pack(side="left", anchor='center', fill='both', expand=True)
         self.pdf_canvas.delete("all") # Start with an empty canvas.
@@ -739,26 +797,22 @@ class App():
         img = img.resize((int(pix.width), int(pix.height)), resample=PIL.Image.Resampling.NEAREST) # Resize and prepare the pdf page image.
         self.tkimg = PIL.ImageTk.PhotoImage(img)
 
-        with warnings.catch_warnings(): # Prevent console warning for CTkLabel with non-CTkImage as "image" argument. Solution found at: https://stackoverflow.com/questions/14463277/how-to-disable-python-warnings
-            warnings.simplefilter("ignore")
-            pic = ctk.CTkLabel(self.pdf_canvas, text="", image = self.tkimg) # Add the pdf page image.
-
         self.pdf_canvas.configure(width=self.tkimg.width(), height=self.tkimg.height()) # Resize the canvas.
         self.pdf_canvas.create_image(self.pdf_canvas.winfo_width(), 0, image=self.tkimg, anchor="nw", tag="pdf_img") # Add the image to the canvas.
         self.pdf_canvas.xview(MOVETO, 0.0) # Reset the viewing field for the canvas.
         self.pdf_canvas.yview(MOVETO, 0.0)
     def update_drawings(self, page_num):
-        """ Redraw all mouse strokes on the page. """
+        """Redraw all mouse strokes on the page"""
         for pointset in self.pdfs[self.pdf_id].freehand_points[page_num]:
             scale_adjusted_pointset = [(point[0]*self.scale, point[1]*self.scale) for point in pointset]
             self.pdf_canvas.create_line(scale_adjusted_pointset, fill="red")
     def update_link_graphics(self, page_num):
-        """ Redraw all link bounding boxes. """
+        """Redraw all link bounding boxes"""
         link_i = 0
         self.link_images = []
         for page_link in self.pdfs[self.pdf_id].doc[page_num].links():
             try:
-                assert page_link["uri"] != None
+                assert page_link["uri"] is not None
 
                 link_rect = [corner * self.scale for corner in list(page_link["from"])]
                 link_id = self.pdf_canvas.create_rectangle(link_rect, outline="#333333", width=5)
@@ -793,21 +847,21 @@ class App():
         self.pdf_canvas.update_idletasks()
 
     def config_update_image(self):
-        """ Update PDF page render without new computations. """
+        """Update PDF page render without new computations"""
         self.pdf_canvas.delete("all") # Start with an empty canvas.
         self.pdf_canvas.create_image(0, 0, image=self.tkimg, anchor="nw", tag="pdf_img") # Add the image to the canvas.
         self.pdf_canvas.xview(MOVETO, 0.0) # Reset the viewing field for the canvas.
         self.pdf_canvas.yview(MOVETO, 0.0)
 
     def update_quickset_canvas(self):
-        """ Update the quickset page images. """
+        """Update the quickset page images"""
         canvas_scrollregion = self.quickset_canvas.config('scrollregion')[4].split(" ")
         canvas_scrollregion_size = int(canvas_scrollregion[3]) - int(canvas_scrollregion[1])
         page_num = self.pdfs[self.pdf_id].page_i
         self.quickset_canvas.yview("moveto", (page_num * 320)/canvas_scrollregion_size)
 
     def update_page(self, page_num):
-        """ Update the entire GUI for a page change. """
+        """Update the entire GUI for a page change"""
         # Select the page and load it as an image.
         page = self.pdfs[self.pdf_id].doc[page_num]
         mat = pymupdf.Matrix(self.scale, self.scale)
@@ -836,7 +890,7 @@ class App():
         else:
             self.menus["Pages"].states[2] = True
 
-        if self.pdfs[self.pdf_id].password == None or self.pdfs[self.pdf_id].password == "": # Prevent setting/removing password if exists/missing.
+        if self.pdfs[self.pdf_id].password is None or self.pdfs[self.pdf_id].password == "": # Prevent setting/removing password if exists/missing.
             self.menus["Encrypt & Compress"].states[0] = True
             self.menus["Encrypt & Compress"].states[1] = False
         else:
@@ -856,51 +910,51 @@ class App():
             self.update_link_graphics(page_num)
 
 
-    """ ======================================= MENU BUTTON FUNCTIONALITY ====================================== """
-    """ -------------------------------------------------- Pages ------------------------------------------------ """
-    def event_rotate_left(self, *args):
-        """ Rotate the page left by 90 degrees. """
+    # MENU BUTTON FUNCTIONALITY
+    # Pages
+    def event_rotate_left(self, *_args):
+        """Rotate the page left by 90 degrees"""
         self.set_unsaved() # A modification has been made to the document.
-        rotater = Page_Rotate_PDF(self.pdfs[self.pdf_id].doc, None)
+        rotater = PageRotatePDF(self.pdfs[self.pdf_id].doc, None)
         rotater.rotate_l(self.pdfs[self.pdf_id].page_i)
         self.pdfs[self.pdf_id].doc = rotater.get()
         self.update_page(self.pdfs[self.pdf_id].page_i)
-    def event_rotate_right(self, *args):
-        """ Rotate the page right by 90 degrees. """
+    def event_rotate_right(self, *_args):
+        """Rotate the page right by 90 degrees"""
         self.set_unsaved() # A modification has been made to the document.
-        rotater = Page_Rotate_PDF(self.pdfs[self.pdf_id].doc, None)
+        rotater = PageRotatePDF(self.pdfs[self.pdf_id].doc, None)
         rotater.rotate_r(self.pdfs[self.pdf_id].page_i)
         self.pdfs[self.pdf_id].doc = rotater.get()
         self.update_page(self.pdfs[self.pdf_id].page_i)
-    def event_move_up(self, *args):
-        """ Move the current page up (Button Event). """
+    def event_move_up(self, *_args):
+        """Move the current page up (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
         if self.pdfs[self.pdf_id].page_i > 0:
-            mover = Page_Move_PDF(self.pdfs[self.pdf_id].doc, None)
+            mover = PageMovePDF(self.pdfs[self.pdf_id].doc, None)
             mover.move(self.pdfs[self.pdf_id].page_i, self.pdfs[self.pdf_id].page_i - 1)
             self.pdfs[self.pdf_id].doc = mover.get()
             self.update_page(self.pdfs[self.pdf_id].page_i)
-    def event_move_down(self, *args):
-        """ Move the current page down (Button Event). """
+    def event_move_down(self, *_args):
+        """Move the current page down (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
         if self.pdfs[self.pdf_id].page_i < len(self.pdfs[self.pdf_id].doc):
-            mover = Page_Move_PDF(self.pdfs[self.pdf_id].doc, None)
+            mover = PageMovePDF(self.pdfs[self.pdf_id].doc, None)
             mover.move(self.pdfs[self.pdf_id].page_i+1, self.pdfs[self.pdf_id].page_i)
             self.pdfs[self.pdf_id].doc = mover.get()
             self.update_page(self.pdfs[self.pdf_id].page_i)
-    """ -------------------------------------------- Encrypt & Compress ----------------------------------------- """
-    def event_set_encryption(self, *args):
-        """ Set Encryption Password for PDF (Button Event). """
+    # Encrypt & Compress
+    def event_set_encryption(self, *_args):
+        """Set Encryption Password for PDF (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
         p1 = ""
         p2 = ""
         pass_dialog = ctk.CTkInputDialog(text="Password", title="Create Password")
         p1 = pass_dialog.get_input()
-        if p1 == None:
+        if p1 is None:
             return
         pass_dialog2 = ctk.CTkInputDialog(text="Confirm Password", title="Create Password")
         p2 = pass_dialog2.get_input()
-        if p2 == None:
+        if p2 is None:
             return
 
         if p1 == p2 and p1!= "":
@@ -908,26 +962,26 @@ class App():
             self.menus["Encrypt & Compress"].states[0] = False
             self.menus["Encrypt & Compress"].states[1] = True
             self.update_page(self.pdfs[self.pdf_id].page_i)
-    def event_remove_encryption(self, *args):
-        """ Remove Encryption Password for PDF (Button Event). """
+    def event_remove_encryption(self, *_args):
+        """Remove Encryption Password for PDF (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
         self.pdfs[self.pdf_id].password = None
         self.menus["Encrypt & Compress"].states[0] = True
         self.menus["Encrypt & Compress"].states[1] = False
         self.update_page(self.pdfs[self.pdf_id].page_i)
-    def event_compress(self, *args):
-        """ Add basic compression to PDF (Button Event). """
+    def event_compress(self, *_args):
+        """Add basic compression to PDF (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
-        if self.pdfs[self.pdf_id].compress_basic == False:
+        if self.pdfs[self.pdf_id].compress_basic is False:
             self.pdfs[self.pdf_id].compress_basic = True
             self.menu_button_3.configure(text="Remove Compression")
         else:
             self.pdfs[self.pdf_id].compress_basic = False
             self.menu_button_3.configure(text="Compress")
-    def event_compress_max(self, *args):
-        """ Add basic and maximum compression to PDF (Button Event). """
+    def event_compress_max(self, *_args):
+        """Add basic and maximum compression to PDF (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
-        if self.pdfs[self.pdf_id].compress_max == False:
+        if self.pdfs[self.pdf_id].compress_max is False:
             self.pdfs[self.pdf_id].compress_basic = True
             self.pdfs[self.pdf_id].compress_max = True
             self.menu_button_3.configure(text="Remove Compression")
@@ -941,43 +995,43 @@ class App():
             self.menu_button_3.configure(state="normal")
             self.menus["Encrypt & Compress"].states[2] = True
             self.menu_button_4.configure(text="Compress (Max)")
-    """ -------------------------------------------------- Insert ------------------------------------------------- """
-    def event_insert_pdf(self, *args):
-        """ Insert another PDF (Button Event). """
+    # Insert
+    def event_insert_pdf(self, *_args):
+        """Insert another PDF (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
         merge_fp = open_pdf()[1]
-        if merge_fp != None and merge_fp != "":
+        if merge_fp is not None and merge_fp != "":
             merger = PDF_Merger(self.pdfs[self.pdf_id].doc)
             merger.add_fitz_doc(merge_fp, self.pdfs[self.pdf_id].page_i)
             self.pdfs[self.pdf_id].doc = merger.get()
             self.update_page(self.pdfs[self.pdf_id].page_i)
-    def event_insert_page(self, *args):
-        """ Insert a blank page (Button Event). """
+    def event_insert_page(self, *_args):
+        """Insert a blank page (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
-        inserter = Page_Insert_Blank_PDF(self.pdfs[self.pdf_id].doc, None)
+        inserter = PageInsertBlankPDF(self.pdfs[self.pdf_id].doc, None)
         inserter.insert(self.pdfs[self.pdf_id].page_i)
         self.pdfs[self.pdf_id].doc = inserter.get()
         self.pdfs[self.pdf_id].add_page_data(self.pdfs[self.pdf_id].page_i)
         self.update_page(self.pdfs[self.pdf_id].page_i)
-    def event_watermark_page(self, *args):
-        """ Watermark the current page. """
+    def event_watermark_page(self, *_args):
+        """Watermark the current page"""
         self.set_unsaved() # A modification has been made to the document.
-        watermarker = Watermark_PDF(self.pdfs[self.pdf_id].doc, None)
+        watermarker = WatermarkPDF(self.pdfs[self.pdf_id].doc, None)
         watermarker.watermark(self.pdfs[self.pdf_id].page_i, gui_get_file(limit_filetypes=[("PNG",".png"), ("JPEG",".jpg")])[0])
         self.pdfs[self.pdf_id].doc = watermarker.get()
         self.update_page(self.pdfs[self.pdf_id].page_i)
-    def event_watermark_document(self, *args):
-        """ Watermark all pages. """
+    def event_watermark_document(self, *_args):
+        """Watermark all pages"""
         self.set_unsaved() # A modification has been made to the document.
-        watermarker = Watermark_PDF(self.pdfs[self.pdf_id].doc, None)
+        watermarker = WatermarkPDF(self.pdfs[self.pdf_id].doc, None)
         watermarker.watermark(self.pdfs[self.pdf_id].page_i, gui_get_file(limit_filetypes=[("PNG",".png"), ("JPEG",".jpg")])[0], all_pages=True)
         self.pdfs[self.pdf_id].doc = watermarker.get()
         self.update_page(self.pdfs[self.pdf_id].page_i)
-    """ -------------------------------------------------- Extract ------------------------------------------------ """
-    def event_delete(self, *args):
-        """ Delete the current page (Button Event). """
+    # Extract
+    def event_delete(self, *_args):
+        """Delete the current page (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
-        deleter = Page_Delete_PDF(self.pdfs[self.pdf_id].doc, None)
+        deleter = PageDeletePDF(self.pdfs[self.pdf_id].doc, None)
         deleter.delete(self.pdfs[self.pdf_id].page_i)
         self.pdfs[self.pdf_id].doc = deleter.get()
         self.pdfs[self.pdf_id].remove_page_data(self.pdfs[self.pdf_id].page_i)
@@ -985,69 +1039,69 @@ class App():
         if self.pdfs[self.pdf_id].page_i ==  len(self.pdfs[self.pdf_id].doc):
             self.pdfs[self.pdf_id].page_i -= 1
         self.update_page(self.pdfs[self.pdf_id].page_i)
-    def event_extract_text(self, *args):
-        """ Extract text from the PDF to a .txt (Button Event). """
+    def event_extract_text(self, *_args):
+        """Extract text from the PDF to a .txt (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
         fname_dialog = ctk.CTkInputDialog(text="File Name", title="Extract Text")
         fname = fname_dialog.get_input()
-        if fname != None and fname.strip() != "":
+        if fname is not None and fname.strip() != "":
             extractor = PDF_Extractor(self.pdfs[self.pdf_id].doc)
             extractor.extract_text(fname)
             subprocess.Popen(f'explorer "{os.getcwd()}"') # Open file explorer to the folder location.
-    def event_extract_images(self, *args):
-        """ Extract images from the PDF to a folder (Button Event). """
+    def event_extract_images(self, *_args):
+        """Extract images from the PDF to a folder (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
         foldername_dialog = ctk.CTkInputDialog(text="Folder Name", title="Extract Images")
         foldername = foldername_dialog.get_input()
-        if foldername != None and foldername.strip() != "":
+        if foldername is not None and foldername.strip() != "":
             extractor = PDF_Extractor(self.pdfs[self.pdf_id].doc)
             extractor.extract_images(foldername)
             subprocess.Popen(f'explorer "{os.getcwd()}"') # Open file explorer to the folder location.
-    def event_screenshot_page(self, *args):
-        """ Save a screenshot of the current PDF page (Button Event). """
+    def event_screenshot_page(self, *_args):
+        """Save a screenshot of the current PDF page (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
         fname_dialog = ctk.CTkInputDialog(text="File Name", title="Screenshot Page")
         fname = fname_dialog.get_input()
-        if fname != None and fname.strip() != "":
+        if fname is not None and fname.strip() != "":
             fname.replace(".png", "").replace(".PNG", "")
             fname += ".png"
             page = self.pdfs[self.pdf_id].doc[self.pdfs[self.pdf_id].page_i]
             pix = page.get_pixmap()
             pix.save(fname)
             subprocess.Popen(f'explorer "{os.getcwd()}"') # Open file explorer to the folder location.
-    """ ------------------------------------------------- Meta Data ----------------------------------------------- """
-    def event_set_meta_author(self, *args):
-        """ Set the metadata "author" tag. """
+    # Meta Data
+    def event_set_meta_author(self, *_args):
+        """Set the metadata "author" tag"""
         self.set_unsaved() # A modification has been made to the document.
         author_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Author: ")
         author = author_dialog.get_input()
         if author.strip() != "":
             self.pdfs[self.pdf_id].custom_metadata["author"] = author.strip()
-    def event_set_meta_title(self, *args):
-        """ Set the metadata "title" tag. """
+    def event_set_meta_title(self, *_args):
+        """Set the metadata "title" tag"""
         self.set_unsaved() # A modification has been made to the document.
         title_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Author: ")
         title = title_dialog.get_input()
         if title.strip() != "":
             self.pdfs[self.pdf_id].custom_metadata["title"] = title.strip()
-    def event_set_meta_subject(self, *args):
-        """ Set the metadata "subject" tag. """
+    def event_set_meta_subject(self, *_args):
+        """Set the metadata "subject" tag"""
         self.set_unsaved() # A modification has been made to the document.
         subject_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Subject: ")
         subject = subject_dialog.get_input()
         if subject.strip() != "":
             self.pdfs[self.pdf_id].custom_metadata["subject"] = subject.strip()
-    def event_set_meta_keywords(self, *args):
-        """ Set the metadata "keywords" tag. """
+    def event_set_meta_keywords(self, *_args):
+        """Set the metadata "keywords" tag"""
         self.set_unsaved() # A modification has been made to the document.
         keywords_dialog = ctk.CTkInputDialog(text="Set Meta Data", title="PDF Keywords: ")
         keywords = keywords_dialog.get_input()
         if keywords.strip() != "":
             self.pdfs[self.pdf_id].custom_metadata["keywords"] = keywords.strip()
-    """ -------------------------------------------------- Signature ----------------------------------------------- """
-    def event_sign_pdf(self, *args):
-        """ Sign a selected PDF with the current Signer Account key file and the necessary password. """
-        if self.pdfs[self.pdf_id].mods_made != False:
+    # Signature
+    def event_sign_pdf(self, *_args):
+        """Sign a selected PDF with the current Signer Account key file and the necessary password"""
+        if self.pdfs[self.pdf_id].mods_made is not False:
             self.save_path = save_pdf(self.pdfs[self.pdf_id], dialog_text = "Filename", dialog_title="Save a Copy to Sign",forced_save = True)
             self.set_saved()
 
@@ -1057,8 +1111,8 @@ class App():
 
         status = sign_pdf(f"{sig_dir}/{self.signer}.sig", self.save_path, self.signer, ctk.CTkInputDialog(text=f"Password for {self.signer}", title="Sign PDF").get_input(), self.signer_private_key_path)
         self.create_popup("PDF Signature Creation Status", status, "OK")
-    def event_verify_signature(self, *args):
-        """ Verify a signature file (.sig) using a selected PDF and the public key from storage.  """
+    def event_verify_signature(self, *_args):
+        """Verify a signature file (.sig) using a selected PDF and the public key from storage.  """
         signed_pdf = gui_get_file(limit_filetypes=[("PDF", ".pdf")])[0]
         if signed_pdf != "":
             signature_file = gui_get_file(limit_filetypes=[("SIG", ".sig")])[0]
@@ -1066,59 +1120,59 @@ class App():
                 signer = signature_file.split("/")[-1].replace(".sig", "")
                 status = verify_pdf_signature(signature_file, signed_pdf, f"{self.settings['pubkey_storage_base']}{signer}.pem", signer)
                 self.create_popup("PDF Signature Verification Status", status, "OK")
-    def event_add_signer_account(self, *args):
-        """ Create the public and private keys necessary for PDF signature. """
+    def event_add_signer_account(self, *_args):
+        """Create the public and private keys necessary for PDF signature"""
         uname = None
         pwd = None
         pwd_verify = None
-        while uname == None or uname.strip() == "": # Get a username for the Signer Account.
+        while uname is None or uname.strip() == "": # Get a username for the Signer Account.
             uname_dialog = ctk.CTkInputDialog(text="Username", title="Add Signer Account")
             uname = uname_dialog.get_input()
-        while pwd != pwd_verify or (pwd == None or pwd.strip() == ""): # Get and confirm a password for the Signer Account.
+        while pwd != pwd_verify or (pwd is None or pwd.strip() == ""): # Get and confirm a password for the Signer Account.
             pwd = ctk.CTkInputDialog(text="Password", title="Add Signer Account").get_input()
             pwd_verify = ctk.CTkInputDialog(text="Password (confirm)", title="Add Signer Account").get_input()
         self.signer_private_key_path = gen_signature_keys(f"{self.settings['pubkey_storage_base']}{uname}.pem", uname, pwd)[1] # Create and register the two keys.
         self.signer = uname
         self.menus["Signatures"].states[0] = True
         self.update_button_states()
-    def event_select_signer_account(self, *args):
-        """ Select a key file (.pem) file for a Signer Account. """
+    def event_select_signer_account(self, *_args):
+        """Select a key file (.pem) file for a Signer Account"""
         self.signer_private_key_path = gui_get_file(limit_filetypes=[("PEM", ".pem")])[0]
         if self.signer_private_key_path != "":
             self.signer = os.path.split(self.signer_private_key_path)[-1].replace("_private_key.pem", "")
             self.menus["Signatures"].states[0] = True
             self.update_button_states()
 
-    """ -------------------------------------------------- Markup ----------------------------------------------- """
-    def event_toggle_freehand_draw(self, *args):
-        """ Sign a selected PDF with the current Signer Account key file and the necessary password. """
+    # Markup
+    def event_toggle_freehand_draw(self, *_args):
+        """Sign a selected PDF with the current Signer Account key file and the necessary password"""
         self.disable_all_markup_keybinds()
         self.freehand_draw_toggle = not self.freehand_draw_toggle
         self.freehand_start_bind = self.pdf_canvas.bind("<B1-Motion>", self.freehand_mouse_add_coords)
         self.freehand_end_bind = self.pdf_canvas.bind("<ButtonRelease-1>", self.freehand_mouse_set_end)
 
-    def event_toggle_link_editor(self, *args):
+    def event_toggle_link_editor(self, *_args):
+        """Verify a signature file (.sig) using a selected PDF and the public key from storage.  """
         self.disable_all_markup_keybinds()
-        """ Verify a signature file (.sig) using a selected PDF and the public key from storage.  """
         self.link_editor_toggle = not self.link_editor_toggle
         self.update_page(self.pdfs[self.pdf_id].page_i)
 
-    def event_toggle_redact(self, *args):
-        """ Create the public and private keys necessary for PDF signature. """
+    def event_toggle_redact(self, *_args):
+        """Create the public and private keys necessary for PDF signature"""
         self.disable_all_markup_keybinds()
         self.redact_toggle = not self.redact_toggle
         self.redact_start_bind = self.pdf_canvas.bind("<Button-1>", self.redact_mouse_set_start)
         self.redact_end_bind = self.pdf_canvas.bind("<ButtonRelease-1>", self.redact_mouse_set_end)
 
-    def event_toggle_highlight(self, *args):
+    def event_toggle_highlight(self, *_args):
+        """Select a key file (.pem) file for a Signer Account"""
         self.disable_all_markup_keybinds()
-        """ Select a key file (.pem) file for a Signer Account. """
         self.highlight_toggle = not self.highlight_toggle
         self.highlight_start_bind = self.pdf_canvas.bind("<Button-1>", self.highlight_mouse_set_start)
         self.highlight_end_bind = self.pdf_canvas.bind("<ButtonRelease-1>", self.highlight_mouse_set_end)
 
-    def disable_all_markup_keybinds(self, *args):
-        """ Disable all the keybinds related to "Markup" menu functionality. """
+    def disable_all_markup_keybinds(self, *_args):
+        """Disable all the keybinds related to "Markup" menu functionality"""
         try:
             self.pdf_canvas.unbind("<B1-Motion>", self.freehand_start_bind)
             self.pdf_canvas.unbind("<ButtonRelease-1>", self.freehand_end_bind)
@@ -1135,38 +1189,42 @@ class App():
         except: # Catch if not bound.
             pass
 
-    """ ===================================================== Drawing ================================================== """
+    # Drawing
     def freehand_mouse_add_coords(self, event): # Add to a click stroke.
-        """ Add a point to the path of the current mouse stroke. """
+        """Add a point to the path of the current mouse stroke"""
         self.pdfs[self.pdf_id].active_stroke.append((self.pdf_canvas.canvasx(event.x)/self.scale, self.pdf_canvas.canvasy(event.y)/self.scale))
         if len(self.pdfs[self.pdf_id].active_stroke) > 1:
             scale_adjusted_stroke = [(stroke[0]*self.scale, stroke[1]*self.scale) for stroke in self.pdfs[self.pdf_id].active_stroke]
             self.pdf_canvas.create_line(scale_adjusted_stroke, fill="red")
-    def freehand_mouse_set_end(self, event): # End of a click stroke.
-        """ End the current mouse stroke. """
+
+    def freehand_mouse_set_end(self, _event): # End of a click stroke.
+        """End the current mouse stroke"""
         if len(self.pdfs[self.pdf_id].active_stroke) > 1:
             self.pdfs[self.pdf_id].freehand_points[self.pdfs[self.pdf_id].page_i].append(self.pdfs[self.pdf_id].active_stroke)
             scale_adjusted_stroke = [(stroke[0]*self.scale, stroke[1]*self.scale) for stroke in self.pdfs[self.pdf_id].active_stroke]
             self.pdf_canvas.create_line(scale_adjusted_stroke, fill="red")
             self.set_unsaved() # A modification has been made to the document.
         self.pdfs[self.pdf_id].active_stroke = []
+
     def redact_mouse_set_start(self, event): # Add to a click stroke.
-        """ Add a point to start a redaction. """
+        """Add a point to start a redaction"""
         self.active_redact_start = (event.x, event.y)
+
     def redact_mouse_set_end(self, event): # End of a click stroke.
-        """ End the current redaction. """
-        if (self.active_redact_start[0] != None) and (self.active_redact_start[1] != None):
+        """End the current redaction"""
+        if (self.active_redact_start[0] is not None) and (self.active_redact_start[1] is not None):
             rectlike = (self.active_redact_start[0], self.active_redact_start[1], event.x, event.y) # Create and add rect-like (4-value tuple) to redactions.
             self.pdfs[self.pdf_id].redact_points[self.pdfs[self.pdf_id].page_i].append(rectlike)
             self.active_redact_start = (None, None)
             self.pdf_canvas.create_rectangle(rectlike, fill="black", outline="black")
             self.set_unsaved() # A modification has been made to the document.
+
     def highlight_mouse_set_start(self, event): # Add to a click stroke.
-        """ Add a point to start a redaction. """
+        """Add a point to start a redaction"""
         self.active_highlight_start = (self.pdf_canvas.canvasx(event.x)/self.scale, self.pdf_canvas.canvasy(event.y)/self.scale)
     def highlight_mouse_set_end(self, event): # End of a click stroke.
-        """ End the current redaction. """
-        if (self.active_highlight_start[0] != None) and (self.active_highlight_start[1] != None):
+        """End the current redaction"""
+        if (self.active_highlight_start[0] is not None) and (self.active_highlight_start[1] is not None):
             rectlike = (self.active_highlight_start[0], self.active_highlight_start[1], self.pdf_canvas.canvasx(event.x)/self.scale, self.pdf_canvas.canvasy(event.y)/self.scale) # Create and add rect-like (4-value tuple) to redactions.
             self.pdfs[self.pdf_id].highlight_points[self.pdfs[self.pdf_id].page_i].append(rectlike)
             print(rectlike)
@@ -1175,5 +1233,5 @@ class App():
             self.set_unsaved() # A modification has been made to the document.
 
 if __name__ == "__main__":
-    """ Run the PyPdfApp application. """
+    # Run the PyPdfApp application
     App()

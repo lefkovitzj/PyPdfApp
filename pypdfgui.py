@@ -612,7 +612,6 @@ class App():
 
     def update_quickset(self, *args):
         """ Update the images based on the scroll position of the hscrollbar."""
-        canvas_scrollregion = self.quickset_canvas.config('scrollregion')[4].split(" ")
         canvas_start = (self.quickset_canvas.canvasx(0), self.quickset_canvas.canvasy(0))
         canvas_end = (self.quickset_canvas.canvasx(self.quickset_canvas.winfo_width()), self.quickset_canvas.canvasy(self.quickset_canvas.winfo_height()))
 
@@ -624,8 +623,13 @@ class App():
         _preview_x = (self.quickset_canvas.winfo_width() - _preview_width) / 2
         _preview_y = self.quickset_scrollbar.winfo_height()
 
-# NEED TO GET THE PAGE TO PREVIEW MODFICIATIONS!!!
-        for i in list(range(last_visible_page_i - first_visible_page_i)) + [self.pdfs[self.pdf_id].page_i]: # Do this for the visible pages and the current page.
+        visible_pages = []
+        pages_range = list(range(last_visible_page_i - first_visible_page_i)) + [self.pdfs[self.pdf_id].page_i]
+        for page_num in pages_range:
+            if page_num < len(self.pdfs[self.pdf_id].doc):
+                visible_pages.append(page_num)
+                
+        for i in visible_pages: # Do this for the visible pages and the current page.
             page_i = first_visible_page_i + i
 
             page = self.pdfs[self.pdf_id].doc[page_i]
@@ -667,6 +671,7 @@ class App():
         for redact_point_set in self.pdfs[self.pdf_id].redact_points[page_i]:
             point_set = []
             for point in redact_point_set:
+                print(point)
                 scaled_point = (point[0] * scale + start_x, (point[1] * scale) + (page_i)*(320) + 35)
                 if scaled_point[0] < start_x or scaled_point[0] > width_x+start_x or scaled_point[1]-(35 + 320 * (page_i)) > 320 or scaled_point[1]-(35 + 320 * (page_i)) < 0:
                     # Point is outside the page bounding box, and therefore invalid.
@@ -677,17 +682,15 @@ class App():
                 self.pdf_canvas.create_rectangle(point_set, fill="black", outline="black")
     def update_quickset_highlight(self, page_i, scale, width_x, start_x):
         """ Update the highlights for the specified page on the quickset. """
-        for highlight_point_set in self.pdfs[self.pdf_id].highlight_points[page_i]:
-            point_set = []
-            for point in highlight_point_set:
-                scaled_point = (point[0] * scale + start_x, (point[1] * scale) + (page_i)*(320) + 35)
-                if scaled_point[0] < start_x or scaled_point[0] > width_x+start_x or scaled_point[1]-(35 + 320 * (page_i)) > 320 or scaled_point[1]-(35 + 320 * (page_i)) < 0:
-                    # Point is outside the page bounding box, and therefore invalid.
-                    pass
-                else:
-                    point_set.append(scaled_point)
-            if len(point_set) > 1:
-                self.pdf_canvas.create_rectangle(point_set, fill="yellow", outline="yellow", stipple="gray50")
+        for highlight_point in self.pdfs[self.pdf_id].highlight_points[page_i]:
+            
+            
+            scaled_point = (highlight_point[0] * scale + start_x, (highlight_point[1] * scale) + (page_i)*(320) + 35, highlight_point[2] * scale + start_x, (highlight_point[3] * scale) + (page_i)*(320) + 35)
+            if scaled_point[0] < start_x or scaled_point[0] > width_x+start_x or scaled_point[1]-(35 + 320 * (page_i)) > 320 or scaled_point[1]-(35 + 320 * (page_i)) < 0:
+                # Point is outside the page bounding box, and therefore invalid.
+                pass
+            else:
+                self.pdf_canvas.create_rectangle(scaled_point, fill="yellow", outline="yellow", stipple="gray50")
 
     def quickset_canvas_clicked(self, event):
         """ Process a click within the quickset canvas, select the correct page. """
@@ -800,6 +803,7 @@ class App():
         """ Update the quickset page images. """
         canvas_scrollregion = self.quickset_canvas.config('scrollregion')[4].split(" ")
         canvas_scrollregion_size = int(canvas_scrollregion[3]) - int(canvas_scrollregion[1])
+        page_num = self.pdfs[self.pdf_id].page_i
         self.quickset_canvas.yview("moveto", (page_num * 320)/canvas_scrollregion_size)
 
     def update_page(self, page_num):
@@ -1165,6 +1169,7 @@ class App():
         if (self.active_highlight_start[0] != None) and (self.active_highlight_start[1] != None):
             rectlike = (self.active_highlight_start[0], self.active_highlight_start[1], self.pdf_canvas.canvasx(event.x)/self.scale, self.pdf_canvas.canvasy(event.y)/self.scale) # Create and add rect-like (4-value tuple) to redactions.
             self.pdfs[self.pdf_id].highlight_points[self.pdfs[self.pdf_id].page_i].append(rectlike)
+            print(rectlike)
             self.active_highlight_start = (None, None)
             self.pdf_canvas.create_rectangle(rectlike, fill="yellow", outline="yellow", stipple="gray50")
             self.set_unsaved() # A modification has been made to the document.

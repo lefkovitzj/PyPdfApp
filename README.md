@@ -1,52 +1,12 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 <a id="readme-top"></a>
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
-*** Thanks again! Now go create something AMAZING! :D
--->
-
-
-
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
-
-
-<!-- PROJECT LOGO -->
+<!-- PROJECT HEADER -->
 <br />
 <div align="center">
-  <a href="https://github.com/github_username/repo_name">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
-
-<h3 align="center">project_title</h3>
+<h3 align="center">PyPdfApp</h3>
 
   <p align="center">
-    project_description
+    A free and open-source PDF manipulation and access application.
     <br />
-    <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/github_username/repo_name">View Demo</a>
-    ·
-    <a href="https://github.com/github_username/repo_name/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
-    ·
-    <a href="https://github.com/github_username/repo_name/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
   </p>
 </div>
 
@@ -71,7 +31,6 @@
     </li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
@@ -83,24 +42,20 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+<img src="documentation-images/application-demo.png" alt="Application demo using the demo.pdf file">
 
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
+This is an example of `app.py` being used to open the `demo.pdf` file.
 
 
 ### Built With
 
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
+* Python
+* CustomTinter
+* PyMuPdf
+* Pillow
+* Requests
+* PyCryptodome
+* Flask (optional, used only for the Public Key server)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -113,33 +68,41 @@ This is an example of how you may give instructions on setting up your project l
 To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
+Begin by downloading the Python programming language from python.org, and make sure to include PIP in the installation process.
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
+* CustomTkinter
   ```sh
-  npm install npm@latest -g
+  pip install customtkinter
   ```
-
+* Pillow
+  ```sh
+  pip install pillow
+  ```
+* PyMuPDF
+  ```sh
+  pip install pymupdf
+  ```
+* Requests
+  ```sh
+  pip install requests
+  ```
+* PyCryptodome
+  ```sh
+  pip install pycryptodome
+  ```
+* Flask (optional, used only for the Public Key server)
+  ```sh
+  pip install flask
+  ```
 ### Installation
 
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/github_username/repo_name.git
-   ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
-5. Change git remote url to avoid accidental pushes to base project
-   ```sh
-   git remote set-url origin github_username/repo_name
-   git remote -v # confirm the changes
-   ```
+1. Download all `.py` files in this repository as well as the `settings.json` file.
+
+2. Configure application settings in `settings.json` to your liking:
+   * `app_max_zoom_scale` (Default 2 = 200% maximum zoom)
+   * `ask_save_before_exit` (Default True = pop-up on exit if unsaved changes have been made)
+   * `allow_keyboard_events` (Default True = enable keyboard shortcuts within the application)
+   
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -148,9 +111,76 @@ This is an example of how to list things you need to use the software and how to
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+Start the app as follows: 
+* Run the `app.py` file from the command line, your IDE of choice, or simply by opening the file with Python.
+* The app will launch File Explorer, use it to select a PDF file to open.
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+#### Application GUI
+Once a PDF file is selected, you will see the following user interface sections (visible in demo above):
+* Menu:
+  * Select submenu.
+  * Navigate through a PDF's pages.
+  * Save the open PDF file.
+  * Open a PDF file.
+  * Create a new blank PDF.
+  * Close the open PDF file.
+  * Adjust the page zoom.
+  * View the page number.
+* Submenu:
+  * Button #1
+  * Button #2
+  * Button #3
+  * Button #4
+* File Selection Menu:
+  * Each open PDF file's name is shown, with a leading "*" indicating unsaved changes and a trailing "|" and number indicating a file with the same name as another that is open already.
+* PDF viewer:
+  * Page render
+  * Scrollbars
+
+The following submenus are available, with different actions for each of the four (4) submenu buttons:
+1. Pages:
+   * Move page up
+   * Move page down
+   * Rotate Left
+   * Rotate Right
+2. Encrypt & Compress:
+   * Set PDF encryption
+   * Remove PDF encryption
+   * Compress PDF (basic)
+   * Compress PDF (maximum)
+3. Insert:
+   * Insert PDF
+   * Insert Blank
+   * Watermark Page
+   * Watermake Document
+4. Extract:
+   * Delete Page
+   * Extract Text
+   * Extract Images
+   * Screenshot Page
+5. Meta Data:
+   * Set Author
+   * Set Title
+   * Set Subject
+   * Add Keywords
+6. Signatures
+   * Sign PDF
+   * Verify Signature
+   * Add Signer Account
+   * Set Signer Account
+
+<br><br>
+#### Application Hotkeys
+Unless disabled in settings.json, the following keyboard shortcuts are available in the application. Please note: most of these are only available when a PDF is open.
+* Control-o: Open a new PDF file.
+* Control-w: Close the open PDF file.
+* Control-n: Create a new blank PDF.
+* Control-s: Save the open PDF file.
+* Right arrow: Navigate to the next page in the PDF file.
+* Left arrow: Navigate to the prior page in the PDF file.
+* Control-plus (Ctrl+): Increase Zoom by 25%.
+* Control-minus (Ctrl-): Decrease Zoom by 25%.
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -159,12 +189,37 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
+- [x] Add license agreement screen on first use. (Completed v1.1)
+- [x] Create update-checker on startup. (Completed v1.1)
+- [x] Allow user-created metadata. (Completed v1.2)
+    - [x] Add metadata configuration submenu. 
+    - [x] Add optional metadata to `save_pdf()` in `save.py`.
+- [x] Add md5 or SHA hash of source code to `settings.json`. (Completed v1.3)
+- [x] Add file tampering checker utility application. (Completed v1.3)
+- [x] Add page rotation feature. (Completed v1.4)
+- [x] Add watermark feature. (Completed v1.4)
+- [x] Add digital signature creation and verification systsm.
+- [x] Add a "red pen markup" feature to draw on PDF pages.
+- [x] Add functionality for multiple PDF files at once.
+- [x] Add functionality to create a new PDF from a blank page.
+- [ ] Create a "Redact" feature.
+- [ ] Create a "Highlight" feature.
+- [ ] Manipulate links within a PDF.
+- [ ] Add quick scroll panel with page previews.
+- [ ] Add tooltips to all buttons.
+- [ ] Add settings page.
+- [ ] Allow user-adjusted keybinds.
+- [ ] Add autosave feature.
+- [ ] Add default page with recently opened list.
+- [ ] Add "Recover Unsaved PDF" feature.
+- [ ] Add feature to create a new PDF from specified pages.
+- [ ] Allow printing from within the application.
+- [ ] Add PDF to DOCX file conversion.
+- [ ] Add CLI for some functionality.
 
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
+
+
+See the [open issues](https://github.com/lefkovitzj/PyPdfApp/issues) to add to the list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -178,19 +233,9 @@ Contributions are what make the open source community such an amazing place to l
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
 Don't forget to give the project a star! Thanks again!
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### Top contributors:
-
-<a href="https://github.com/github_username/repo_name/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=github_username/repo_name" alt="contrib.rocks image" />
-</a>
 
 
 
@@ -206,9 +251,9 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+Joseph Lefkovitz - [GitHub](https://github.com/lefkovitzj/) - [LinkedIn](https://www.linkedin.com/in/joseph-lefkovitz/)
 
-Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name)
+Project Link: [https://github.com/lefkovitzj/PyPdfApp](https://github.com/lefkovitzj/PyPdfApp)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -217,42 +262,12 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* []()
-* []()
-* []()
+* [PyMuPDF](https://pymupdf.readthedocs.io/), which was used in all the under-the-hood PDF manipulation and access functions.
+* [CustomTkinter](https://customtkinter.tomschimansky.com/), which was used to create most of the modern user interface elements.
+* [Pillow](https://pillow.readthedocs.io/), which was used in the PDF page rendering process.
+* [PyCryptodome](https://www.pycryptodome.org/), which was used in the PDF signature functions.
+* [Requests](https://requests.readthedocs.io/), which was used in the update launcher process.
+* [Flask](https://flask.palletsprojects.com/), which was used for the PDF signer account public key.
+* [othneildrew's Best-README-Template](https://github.com/othneildrew/Best-README-Template/), which was used in a modified form for this project's `README.md` file.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/github_username/repo_name.svg?style=for-the-badge
-[contributors-url]: https://github.com/github_username/repo_name/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/github_username/repo_name.svg?style=for-the-badge
-[forks-url]: https://github.com/github_username/repo_name/network/members
-[stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge
-[stars-url]: https://github.com/github_username/repo_name/stargazers
-[issues-shield]: https://img.shields.io/github/issues/github_username/repo_name.svg?style=for-the-badge
-[issues-url]: https://github.com/github_username/repo_name/issues
-[license-shield]: https://img.shields.io/github/license/github_username/repo_name.svg?style=for-the-badge
-[license-url]: https://github.com/github_username/repo_name/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/linkedin_username
-[product-screenshot]: images/screenshot.png
-[Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
-[Next-url]: https://nextjs.org/
-[React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
-[React-url]: https://reactjs.org/
-[Vue.js]: https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D
-[Vue-url]: https://vuejs.org/
-[Angular.io]: https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white
-[Angular-url]: https://angular.io/
-[Svelte.dev]: https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00
-[Svelte-url]: https://svelte.dev/
-[Laravel.com]: https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white
-[Laravel-url]: https://laravel.com
-[Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
-[Bootstrap-url]: https://getbootstrap.com
-[JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
-[JQuery-url]: https://jquery.com

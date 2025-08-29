@@ -31,12 +31,3 @@ class GUI_Menu():
         return return_list
     def get_name(self):
         return self.name
-
-def gui_get_file(initial_directory="", limit_filetypes=[]):
-    """Open file explorer (using tkinter) to select a file"""
-    root = Tk() # Create the GUI window.
-    root.withdraw()
-    complete_file_path = filedialog.askopenfilename(title="File Select", initialdir = os.getcwd() + "/" + initial_directory, filetypes = limit_filetypes) # Select the file.
-    root.destroy()
-    file_path, file_name = os.path.split(complete_file_path) # Get the filepath and filename to return to the user.
-    return complete_file_path, file_name

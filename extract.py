@@ -17,8 +17,8 @@ def calculate_pdf_temp_title(action, file_ending=".pdf"):
 class PDF_Extractor():
     def __init__(self, fitz_doc):
         """Initialize the object"""
-        if "temporary_files" not in os.listdir(os.getcwd()): # Ensure that the necessary save folder exists.
-            os.makedirs("temporary_files")
+        if "temporary-files" not in os.listdir(os.getcwd()): # Ensure that the necessary save folder exists.
+            os.makedirs("temporary-files")
         self.doc = fitz_doc
     def extract_text(self, file_loc):
         """Extract text from the PDF"""

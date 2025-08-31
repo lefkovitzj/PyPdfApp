@@ -24,7 +24,7 @@ import PIL
 import requests
 
 # Project Imports.
-from extract import PDF_Extractor
+from extract import PdfExtractor
 from gui import GuiMenu
 from load import open_pdf
 from manipulate import (
@@ -1349,7 +1349,7 @@ class App():
         fname_dialog = ctk.CTkInputDialog(text="File Name", title="Extract Text")
         fname = fname_dialog.get_input()
         if fname is not None and fname.strip() != "":
-            extractor = PDF_Extractor(self.pdfs[self.pdf_id].doc)
+            extractor = PdfExtractor(self.pdfs[self.pdf_id].doc)
             extractor.extract_text(fname)
             # Open file explorer to the folder location.
             subprocess.Popen(f'explorer "{os.getcwd()}"')
@@ -1359,7 +1359,7 @@ class App():
         foldername_dialog = ctk.CTkInputDialog(text="Folder Name", title="Extract Images")
         foldername = foldername_dialog.get_input()
         if foldername is not None and foldername.strip() != "":
-            extractor = PDF_Extractor(self.pdfs[self.pdf_id].doc)
+            extractor = PdfExtractor(self.pdfs[self.pdf_id].doc)
             extractor.extract_images(foldername)
             # Open file explorer to the folder location.
             subprocess.Popen(f'explorer "{os.getcwd()}"')

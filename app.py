@@ -9,5 +9,5 @@
 import pypdfgui
 
 if __name__ == "__main__":
-    """Run the PyPdfApp application"""
+    # Run the PyPdfApp application.
     pypdfgui.App()

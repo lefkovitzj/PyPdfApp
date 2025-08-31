@@ -8,6 +8,6 @@
 # Project Imports.
 import pypdfgui
 
-
 if __name__ == "__main__":
-    pypdfgui.App() # Run the PyPdfApp user interface application.
+    # Run the PyPdfApp application.
+    pypdfgui.App()

@@ -36,7 +36,7 @@ from manipulate import (
     PageRotatePDF,
     WatermarkPDF
 )
-from merge import PDF_Merger
+from merge import PdfMerger
 from save import save_pdf
 from sign import gen_signature_keys, sign_pdf, verify_pdf_signature
 from utils import PdfDocInstance, PdfQueue
@@ -1300,7 +1300,7 @@ class App():
         self.set_unsaved() # A modification has been made to the document.
         merge_fp = open_pdf()[1]
         if merge_fp is not None and merge_fp != "":
-            merger = PDF_Merger(self.pdfs[self.pdf_id].doc)
+            merger = PdfMerger(self.pdfs[self.pdf_id].doc)
             merger.add_fitz_doc(merge_fp, self.pdfs[self.pdf_id].page_i)
             self.pdfs[self.pdf_id].doc = merger.get()
             self.update_page(self.pdfs[self.pdf_id].page_i)

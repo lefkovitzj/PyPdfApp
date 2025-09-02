@@ -6,9 +6,11 @@
 """
 
 # Standard library imports.
+import datetime
 from tkinter import *
 from tkinter import filedialog
 import os
+
 
 # Third-party imports.
 import fitz
@@ -33,6 +35,58 @@ def gui_get_file(initial_directory="", limit_filetypes=None):
     root.destroy()
     _file_path, file_name = os.path.split(complete_file_path)
     return complete_file_path, file_name
+
+def calculate_pdf_temp_title():
+    """Generate a timestamp-based temporary filename"""
+    tb = str(datetime.datetime.today()) # Basic timestamp string.
+    file_title = (tb[:4] + "-" +
+                  tb[5:7] + "-"
+                  + tb[8:10] + "_" +
+                  tb[11:13] + "-" +
+                  tb[14:16] + "-" +
+                  tb[17:19] + ".pdf")
+    return file_title
+
+
+class PdfExtractor():
+    """Extract data from the PDF of page"""
+    def __init__(self, fitz_doc):
+        """Initialize the object"""
+        # Ensure that the necessary save folder exists.
+        if "temporary-files" not in os.listdir(os.getcwd()):
+            os.makedirs("temporary-files")
+        self.doc = fitz_doc
+    def extract_text(self, file_loc):
+        """Extract text from the PDF"""
+        file_loc.replace(".txt", "")
+        file_loc += ".txt"
+        with open(file_loc, "w", encoding="utf-8") as text_file: # Open the output .txt file.
+            for page_i in self.doc: # Iterate through each page.
+                page_text = page_i.get_text("text")
+                text_file.write(
+                    ("Text extracted from PDF file by PyPdfUtils: "
+                     "\n\nSTART OF EXTRACTED TEXT\n")
+                )
+                text_file.write(page_text + "\n")
+                text_file.write("END OF EXTRACTED TEXT")
+        text_file.close() # Close the .txt file.
+        return True, file_loc
+    def extract_images(self, file_dir):
+        """Extract images from the PDF"""
+        os.mkdir(file_dir)
+        img_num = 1
+        for page_i in self.doc: # Iterate through each page.
+            for page_image_list in page_i.get_images():
+                xref_id = page_image_list[0] # Get the xref of the image.
+                page_image = self.doc.extract_image(xref_id) # Extract the image from the page.
+                # Save the extracted image to the temporary file directory.
+                with open(
+                    (file_dir + "\\image_" + str(img_num) + "." + page_image["ext"]),
+                    'wb') as img_bin: 
+                    img_bin.write(page_image["image"])
+                img_bin.close()
+                img_num += 1
+        return True, file_dir
 
 class PDFManipulator:
     """A base class for PDF manipulation tasks."""
@@ -94,3 +148,58 @@ class WatermarkPDF(PDFManipulator):
                 if not page.is_wrapped:
                     page.wrap_contents()
                 page.insert_image(page.bound(), filename = source_image, overlay = True)
+
+class PdfMerger():
+    """An object used to merge two PDF documents (or select pages) into one"""
+    def __init__(self, fitz_doc):
+        """Initialize the object"""
+        self.doc = fitz_doc
+
+    def save(self):
+        """Save the document to temporary files"""
+        self.doc.save("temporary-files\\" + calculate_pdf_temp_title())
+
+    def add_pages(self, source_file_loc, start_i, start_page, end_page=None):
+        """Add the pages from the source document between the given indices."""
+        if end_page is None: # No end page was specified, assume only one page was intended.
+            end_page = start_page
+        source_file = fitz.open(source_file_loc)
+        if end_page == -1:
+            # No to_page argument, default to last page.
+            self.doc.insert_pdf(source_file, from_page=start_page, start_at = start_i)
+        else:
+            self.doc.insert_pdf(
+                source_file,
+                from_page=start_page,
+                to_page=end_page,
+                start_at = start_i)
+        source_file.close()
+
+    def add_pdf(self, source_file_loc, start_i):
+        """Add all pages from the source document."""
+        source_file = fitz.open(source_file_loc)
+        self.doc.insert_pdf(source_file, start_at = start_i)
+        source_file.close()
+
+    def add_fitz_doc(self, source_fitz_doc, start_i):
+        """Add all pages from the source document."""
+        self.doc.insert_pdf(source_fitz_doc, start_at = start_i)
+        source_fitz_doc.close()
+
+    def remove_page(self, page_i):
+        """Remove a page at the given index if it exists"""
+        doc_len = len(self.doc)
+        if page_i <= doc_len:
+            new_doc = fitz.open()
+            # Add all the pages up to the page that is to be removed.
+            new_doc.insert_pdf(self.doc, from_page = 0, to_page=page_i-1)
+            if page_i != doc_len:
+                # Add all pages after the page to be removed.
+                new_doc.insert_pdf(self.doc, from_page = page_i+1)
+            self.doc = new_doc
+        else: # The page does not exist at the given index.
+            raise IndexError(f"Page index out of range for document of length {doc_len}")
+
+    def get(self):
+        """Return the PDF document"""
+        return self.doc

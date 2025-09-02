@@ -24,7 +24,6 @@ import PIL
 import requests
 
 # Project Imports.
-from extract import PdfExtractor
 from gui import GuiMenu
 from load import open_pdf
 from manipulate import (
@@ -34,9 +33,10 @@ from manipulate import (
     PageInsertBlankPDF,
     PageMovePDF,
     PageRotatePDF,
-    WatermarkPDF
+    WatermarkPDF,
+    PdfExtractor,
+    PdfMerger
 )
-from merge import PdfMerger
 from save import save_pdf
 from sign import gen_signature_keys, sign_pdf, verify_pdf_signature
 from utils import PdfDocInstance, PdfQueue

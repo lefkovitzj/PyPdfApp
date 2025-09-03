@@ -12,17 +12,24 @@ from datetime import date
 import fitz
 import customtkinter as ctk
 
-def save_pdf(pdf_doc_instance_object, compress_basic = False, compress_max = False, password = None, dialog_text=None, dialog_title=None, forced_save = True, *args):
+def save_pdf(
+        pdf_doc,
+        password = None,
+        dialog_text=None,
+        dialog_title=None,
+        forced_save = True,
+        *_args):
+    """Save a PDF with encryption, markup, & compression handling"""
     file_path = None
-    if dialog_text == None:
+    if dialog_text is None:
         dialog_text = "Filename"
-    if dialog_title == None:
+    if dialog_title is None:
         dialog_title = "Save PDF"
-    while file_path == "" or file_path == None:
+    while file_path == "" or file_path is None:
         fp_dialog = ctk.CTkInputDialog(text=dialog_text, title=dialog_title)
         file_path = fp_dialog.get_input()
-        if forced_save != True: # Exit after one round.
-            if file_path == "" or file_path == None:
+        if forced_save is not True: # Exit after one round.
+            if file_path == "" or file_path is None:
                 return None
             else:
                 break
@@ -30,51 +37,60 @@ def save_pdf(pdf_doc_instance_object, compress_basic = False, compress_max = Fal
     garbage_num = 0
     compress = False
 
-    if pdf_doc_instance_object.compress_max:
+    if pdf_doc.compress_max:
         garbage_num  = 4
 
-    if pdf_doc_instance_object.compress_basic or pdf_doc_instance_object.compress_max:
+    if pdf_doc.compress_basic or pdf_doc.compress_max:
         compress = True
 
-    if pdf_doc_instance_object.custom_metadata["title"] == None:
-        pdf_doc_instance_object.custom_metadata["title"] = file_path.lower().replace(".pdf","").title()
-    pdf_doc_instance_object.custom_metadata["creationDate"] = str(date.today())
-    pdf_doc_instance_object.custom_metadata["modDate"] = str(date.today())
+    if pdf_doc.custom_metadata["title"] is None:
+        pdf_doc.custom_metadata["title"] = file_path.lower().replace(".pdf","").title()
+    pdf_doc.custom_metadata["creationDate"] = str(date.today())
+    pdf_doc.custom_metadata["modDate"] = str(date.today())
 
-    pdf_doc_instance_object.doc.set_metadata(pdf_doc_instance_object.custom_metadata)
-    pdf_doc_instance_object.doc.save(file_path, deflate = compress, garbage = garbage_num) # Save the document.
+    pdf_doc.doc.set_metadata(pdf_doc.custom_metadata)
+    pdf_doc.doc.save(file_path, deflate = compress, garbage = garbage_num) # Save the document.
 
-    for page_i in range(len(pdf_doc_instance_object.doc)):
-        page = pdf_doc_instance_object.doc[page_i]
+    for page_i, page in enumerate(pdf_doc.doc):
 
         # Freehand drawings.
-        markings = pdf_doc_instance_object.freehand_points[page_i]
+        markings = pdf_doc.freehand_points[page_i]
         page.add_ink_annot(markings)
 
         # Redactions.
-        for redaction_rectlike in pdf_doc_instance_object.redact_points[page_i]:
+        for redaction_rectlike in pdf_doc.redact_points[page_i]:
             page.add_redact_annot(redaction_rectlike, fill=(0,0,0))
         page.apply_redactions()
 
         # Highlights.
-        for highlight_rectlike in pdf_doc_instance_object.highlight_points[page_i]:
+        for highlight_rectlike in pdf_doc.highlight_points[page_i]:
             highlight = page.add_highlight_annot(highlight_rectlike)
             highlight.update()
 
 
-    if pdf_doc_instance_object.password != None and pdf_doc_instance_object.password != "":
+    if pdf_doc.password is not None and pdf_doc.password != "":
         perm = int( # Set the permissions for the file.
             fitz.PDF_PERM_ACCESSIBILITY
             | fitz.PDF_PERM_PRINT
             | fitz.PDF_PERM_COPY
             | fitz.PDF_PERM_ANNOTATE
         )
-        owner_password = pdf_doc_instance_object.password
-        owner_pass = owner_password
-        user_pass = pdf_doc_instance_object.password
+        password = pdf_doc.password
         encrypt_method = fitz.PDF_ENCRYPT_AES_256 # Use the strongest algorithm available.
 
-        pdf_doc_instance_object.doc.save(file_path, deflate = compress, garbage = garbage_num, encryption = fitz.PDF_ENCRYPT_AES_256, owner_pw=password, user_pw=password, permissions=perm) # Save the document (with encryption).
+        # Save the document (with encryption).
+        pdf_doc.doc.save(
+            file_path,
+            deflate = compress,
+            garbage = garbage_num,
+            encryption = encrypt_method,
+            owner_pw=password,
+            user_pw=password,
+            permissions=perm)
     else:
-        pdf_doc_instance_object.doc.save(file_path, deflate = compress, garbage = garbage_num) # Save the document.
+        # Save the document.
+        pdf_doc.doc.save(
+            file_path,
+            deflate = compress,
+            garbage = garbage_num)
     return file_path

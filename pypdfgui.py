@@ -933,43 +933,43 @@ class App():
                 else:
                     point_set.append(scaled_point)
             if len(point_set) > 1:
-                self.quickset_canvas.create_line(point_set)
+                self.quickset_canvas.create_line(point_set, fill="red")
     def update_quickset_redact(self, page_i, scale, width_x, start_x):
         """Update the redacts for the specified page on the quickset"""
-        for redact_point_set in self.pdfs[self.pdf_id].redact_points[page_i]:
-            point_set = []
-            for point in redact_point_set:
-                print(point)
-                scaled_point = (
-                    point[0] * scale + start_x,
-                    (point[1] * scale) + (page_i)*(320) + 35)
-                if (scaled_point[0] < start_x
-                    or scaled_point[0] > width_x+start_x
-                    or scaled_point[1]-(35 + 320 * (page_i)) > 320
-                    or scaled_point[1]-(35 + 320 * (page_i)) < 0):
-                    # Point is outside the page bounding box, and therefore invalid.
-                    pass
-                else:
-                    point_set.append(scaled_point)
-            if len(point_set) > 1:
-                self.pdf_canvas.create_rectangle(point_set, fill="black", outline="black")
-    def update_quickset_highlight(self, page_i, scale, width_x, start_x):
-        """Update the highlights for the specified page on the quickset"""
-        for highlight_point in self.pdfs[self.pdf_id].highlight_points[page_i]:
-            scaled_point = (
-                highlight_point[0] * scale + start_x,
-                (highlight_point[1] * scale) + (page_i)*(320) + 35,
-                highlight_point[2] * scale + start_x,
-                (highlight_point[3] * scale) + (page_i)*(320) + 35)
-            if (scaled_point[0] < start_x
-                or scaled_point[0] > width_x+start_x
-                or scaled_point[1]-(35 + 320 * (page_i)) > 320
-                or scaled_point[1]-(35 + 320 * (page_i)) < 0):
+        for redact_rect in self.pdfs[self.pdf_id].redact_points[page_i]:
+            scaled_rect = (
+                redact_rect[0] * scale + start_x,
+                (redact_rect[1] * scale) + (page_i)*(320) + 35,
+                redact_rect[2] * scale + start_x,
+                (redact_rect[3] * scale) + (page_i)*(320) + 35)
+            if (scaled_rect[0] < start_x
+                or scaled_rect[0] > width_x+start_x
+                or scaled_rect[1]-(35 + 320 * (page_i)) > 320
+                or scaled_rect[1]-(35 + 320 * (page_i)) < 0):
                 # Point is outside the page bounding box, and therefore invalid.
                 pass
             else:
-                self.pdf_canvas.create_rectangle(
-                    scaled_point,
+                self.quickset_canvas.create_rectangle(
+                    scaled_rect,
+                    fill="black",
+                    outline="black")
+    def update_quickset_highlight(self, page_i, scale, width_x, start_x):
+        """Update the highlights for the specified page on the quickset"""
+        for highlight_rect in self.pdfs[self.pdf_id].highlight_points[page_i]:
+            scaled_rect = (
+                highlight_rect[0] * scale + start_x,
+                (highlight_rect[1] * scale) + (page_i)*(320) + 35,
+                highlight_rect[2] * scale + start_x,
+                (highlight_rect[3] * scale) + (page_i)*(320) + 35)
+            if (scaled_rect[0] < start_x
+                or scaled_rect[0] > width_x+start_x
+                or scaled_rect[1]-(35 + 320 * (page_i)) > 320
+                or scaled_rect[1]-(35 + 320 * (page_i)) < 0):
+                # Point is outside the page bounding box, and therefore invalid.
+                pass
+            else:
+                self.quickset_canvas.create_rectangle(
+                    scaled_rect,
                     fill="yellow",
                     outline="yellow",
                     stipple="gray50")
@@ -1042,6 +1042,27 @@ class App():
                 (point[0]*self.scale, point[1]*self.scale)
                 for point in pointset]
             self.pdf_canvas.create_line(scale_adjusted_pointset, fill="red")
+    def update_highlights(self, page_num):
+        """Redraw all highlights on the page"""
+        for rectlike_set in self.pdfs[self.pdf_id].highlight_points[page_num]:
+            rectlike = (rectlike_set[0]*self.scale, rectlike_set[1]*self.scale, rectlike_set[2]*self.scale, rectlike_set[3]*self.scale)
+            print(rectlike)
+            self.pdf_canvas.create_rectangle(
+                rectlike,
+                fill="yellow",
+                outline="yellow",
+                stipple="gray50"
+            )
+    def update_redactions(self, page_num):
+        """Redraw all redactions on the page"""
+        for rectlike_set in self.pdfs[self.pdf_id].redact_points[page_num]:
+            rectlike = (rectlike_set[0]*self.scale, rectlike_set[1]*self.scale, rectlike_set[2]*self.scale, rectlike_set[3]*self.scale)
+            print(rectlike)
+            self.pdf_canvas.create_rectangle(
+                rectlike,
+                fill="black",
+                outline="black"
+            )
     def update_link_graphics(self, page_num):
         """Redraw all link bounding boxes"""
         link_i = 0
@@ -1204,6 +1225,8 @@ class App():
         except:
             pass
         self.update_drawings(page_num)
+        self.update_highlights(page_num)
+        self.update_redactions(page_num)
         self.update_quickset(page_num)
         if self.link_editor_toggle:
             self.update_link_graphics(page_num)
@@ -1536,10 +1559,19 @@ class App():
     # Drawing
     def freehand_mouse_add_coords(self, event): # Add to a click stroke.
         """Add a point to the path of the current mouse stroke"""
-        self.pdfs[self.pdf_id].active_stroke.append(
-            (self.pdf_canvas.canvasx(event.x)/self.scale,
+        scaled_point = (self.pdf_canvas.canvasx(event.x)/self.scale,
              self.pdf_canvas.canvasy(event.y)/self.scale)
-        )
+        print(self.pix.width, self.pix.height)
+        print(scaled_point)
+        if (scaled_point[0] < 0
+            or scaled_point[0] > self.pix.width
+            or scaled_point[1] > self.pix.height
+            or scaled_point[1] < 0):
+            # Point is outside the page bounding box, and therefore invalid.
+            print("Outside!")
+            return
+        self.pdfs[self.pdf_id].active_stroke.append(scaled_point)
+
         if len(self.pdfs[self.pdf_id].active_stroke) > 1:
             scale_adjusted_stroke = [
                 (stroke[0]*self.scale, stroke[1]*self.scale)
@@ -1557,9 +1589,11 @@ class App():
                 (stroke[0]*self.scale, stroke[1]*self.scale)
                 for stroke in self.pdfs[self.pdf_id].active_stroke
             ]
+
             self.pdf_canvas.create_line(scale_adjusted_stroke, fill="red")
             self.set_unsaved() # A modification has been made to the document.
         self.pdfs[self.pdf_id].active_stroke = []
+        self.update_quickset(self.pdfs[self.pdf_id].page_i)
 
     def redact_mouse_set_start(self, event): # Add to a click stroke.
         """Add a point to start a redaction"""
@@ -1574,6 +1608,7 @@ class App():
             self.active_redact_start = (None, None)
             self.pdf_canvas.create_rectangle(rectlike, fill="black", outline="black")
             self.set_unsaved() # A modification has been made to the document.
+            self.update_quickset(self.pdfs[self.pdf_id].page_i)
 
     def highlight_mouse_set_start(self, event): # Add to a click stroke.
         """Add a point to start a redaction"""
@@ -1591,8 +1626,10 @@ class App():
                 self.pdf_canvas.canvasx(event.x)/self.scale,
                 self.pdf_canvas.canvasy(event.y)/self.scale
             ) # Create and add rect-like (4-value tuple) to redactions.
+            if rectlike[0] == rectlike[2] and rectlike[1] == rectlike[3]: # Just one point.
+                self.active_highlight_start = (None, None)
+                return
             self.pdfs[self.pdf_id].highlight_points[self.pdfs[self.pdf_id].page_i].append(rectlike)
-            print(rectlike)
             self.active_highlight_start = (None, None)
             self.pdf_canvas.create_rectangle(
                 rectlike,
@@ -1601,6 +1638,7 @@ class App():
                 stipple="gray50"
             )
             self.set_unsaved() # A modification has been made to the document.
+            self.update_quickset(self.pdfs[self.pdf_id].page_i)
 
 if __name__ == "__main__":
     # Run the PyPdfApp application

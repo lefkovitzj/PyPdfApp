@@ -9,3 +9,6 @@ utility-apps/signature-key-server/key-files/*
 # Sample documents
 samples/*
 *.pdf
+
+# Temporary files
+temporary-files/*

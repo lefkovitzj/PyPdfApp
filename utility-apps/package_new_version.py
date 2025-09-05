@@ -46,7 +46,7 @@ if __name__ == "__main__":
     input("\nHit \"Enter\" to proceed... ")
     template['release_date'] = str(date.today())
     template['version'] = input("\nVersion number: ")
-    template['source_file_hashes'] = generate_all_py_file_hashes(parse_dir="../")
+    template['source_file_hashes'] = generate_all_py_file_hashes(parse_dir="./")
     new_settings_json = json.dumps(template, indent=4)
     pyperclip.copy(new_settings_json)
     print(new_settings_json)

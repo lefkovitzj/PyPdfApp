@@ -41,10 +41,11 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-
-<img src="documentation-images/application-demo.png" alt="Application demo using the demo.pdf file">
-
-This is an example of `app.py` being used to open the `demo.pdf` file.
+<div align="center">
+  <img src="documentation-images/application-demo.png" alt="Application demo using the demo.pdf file" width="60%">
+</div>
+<br>
+This is an example of `app.pyw` being used to open the `demo.pdf` file.
 
 
 ### Built With
@@ -168,6 +169,11 @@ The following submenus are available, with different actions for each of the fou
    * Verify Signature
    * Add Signer Account
    * Set Signer Account
+7. Markup:
+   * Freehand Draw
+   * Link Editor
+   * Redact
+   * Highlight
 
 <br><br>
 #### Application Hotkeys
@@ -198,14 +204,14 @@ Unless disabled in settings.json, the following keyboard shortcuts are available
 - [x] Add file tampering checker utility application. (Completed v1.3)
 - [x] Add page rotation feature. (Completed v1.4)
 - [x] Add watermark feature. (Completed v1.4)
-- [x] Add digital signature creation and verification systsm.
-- [x] Add a "red pen markup" feature to draw on PDF pages.
-- [x] Add functionality for multiple PDF files at once.
-- [x] Add functionality to create a new PDF from a blank page.
-- [ ] Create a "Redact" feature.
-- [ ] Create a "Highlight" feature.
-- [ ] Manipulate links within a PDF.
-- [ ] Add quick scroll panel with page previews.
+- [x] Add digital signature creation and verification systsm. (Completed v1.5)
+- [x] Add a "red pen markup" feature to draw on PDF pages. (Completed v1.6)
+- [x] Add functionality for multiple PDF files at once. (Completed v1.6)
+- [x] Add functionality to create a new PDF from a blank page. (Completed v1.7)
+- [x] Create a "Redact" feature. (Completed v1.8)
+- [x] Create a "Highlight" feature. (Completed v1.8)
+- [x] Manipulate links within a PDF. (Completed v1.8)
+- [x] Add quick scroll panel with page previews. (Completed v1.8)
 - [ ] Add tooltips to all buttons.
 - [ ] Add settings page.
 - [ ] Allow user-adjusted keybinds.

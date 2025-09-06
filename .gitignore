@@ -1,0 +1,14 @@
+# Python bytecode
+__pycache__/*
+
+# Test credentials & signed files for PDF signature
+credentials/*
+signatures/*
+utility-apps/signature-key-server/key-files/*
+
+# Sample documents
+samples/*
+*.pdf
+
+# Temporary files
+temporary-files/*

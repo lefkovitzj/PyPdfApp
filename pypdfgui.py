@@ -1597,14 +1597,23 @@ class App():
 
     def redact_mouse_set_start(self, event): # Add to a click stroke.
         """Add a point to start a redaction"""
-        self.active_redact_start = (event.x, event.y)
+        self.active_redact_start = (
+            self.pdf_canvas.canvasx(event.x)/self.scale,
+            self.pdf_canvas.canvasy(event.y)/self.scale
+        )
 
     def redact_mouse_set_end(self, event): # End of a click stroke.
         """End the current redaction"""
         if (self.active_redact_start[0] is not None) and (self.active_redact_start[1] is not None):
             # Create and add rect-like (4-value tuple) to redactions.
-            rectlike = (self.active_redact_start[0], self.active_redact_start[1], event.x, event.y)
+            rectlike = (
+                self.active_redact_start[0],
+                self.active_redact_start[1],
+                self.pdf_canvas.canvasx(event.x)/self.scale,
+                self.pdf_canvas.canvasy(event.y)/self.scale
+            )
             self.pdfs[self.pdf_id].redact_points[self.pdfs[self.pdf_id].page_i].append(rectlike)
+            rectlike  = tuple([n * self.scale for n in rectlike])
             self.active_redact_start = (None, None)
             self.pdf_canvas.create_rectangle(rectlike, fill="black", outline="black")
             self.set_unsaved() # A modification has been made to the document.
@@ -1630,6 +1639,7 @@ class App():
                 self.active_highlight_start = (None, None)
                 return
             self.pdfs[self.pdf_id].highlight_points[self.pdfs[self.pdf_id].page_i].append(rectlike)
+            rectlike  = tuple([n * self.scale for n in rectlike])
             self.active_highlight_start = (None, None)
             self.pdf_canvas.create_rectangle(
                 rectlike,

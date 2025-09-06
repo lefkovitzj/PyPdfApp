@@ -41,10 +41,11 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-
-<img src="documentation-images/application-demo.png" alt="Application demo using the demo.pdf file">
-
-This is an example of `app.py` being used to open the `demo.pdf` file.
+<div align="center">
+  <img src="documentation-images/application-demo.png" alt="Application demo using the demo.pdf file" width="60%">
+</div>
+<br>
+This is an example of `app.pyw` being used to open the `demo.pdf` file.
 
 
 ### Built With

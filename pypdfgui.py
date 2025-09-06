@@ -866,20 +866,22 @@ class App():
 
         first_visible_page_i = math.floor((canvas_start[1]) / 320)
         last_visible_page_i = math.floor((canvas_end[1]-15) / 320)
+        print(first_visible_page_i, last_visible_page_i)
+        visible_pages = []
+        for i in range(last_visible_page_i - first_visible_page_i + 1):
+            if first_visible_page_i + i + 1 <= len(self.pdfs[self.pdf_id].doc):
+                visible_pages.append(first_visible_page_i + i)
+            
+        if self.pdfs[self.pdf_id].page_i not in visible_pages:
+            visible_pages.append(self.pdfs[self.pdf_id].page_i)
+        
 
         _preview_width = 200
         _preview_x = (self.quickset_canvas.winfo_width() - _preview_width) / 2
 
-        visible_pages = []
-        pages_range = list(
-            range(last_visible_page_i - first_visible_page_i)
-        ) + [self.pdfs[self.pdf_id].page_i]
-        for page_num in pages_range:
-            if page_num < len(self.pdfs[self.pdf_id].doc):
-                visible_pages.append(page_num)
-
+        print(visible_pages)
         for i in visible_pages: # Do this for the visible pages and the current page.
-            page_i = first_visible_page_i + i
+            page_i = i
 
             page = self.pdfs[self.pdf_id].doc[page_i]
             pix = page.get_pixmap()
@@ -1323,10 +1325,14 @@ class App():
         self.set_unsaved() # A modification has been made to the document.
         merge_fp = open_pdf()[1]
         if merge_fp is not None and merge_fp != "":
+            for i in range(len(merge_fp)): # Add blank markup data.
+                self.pdfs[self.pdf_id].add_page_data(self.pdfs[self.pdf_id].page_i)
+                self.pdfs[self.pdf_id].page_i -= 1
             merger = PdfMerger(self.pdfs[self.pdf_id].doc)
             merger.add_fitz_doc(merge_fp, self.pdfs[self.pdf_id].page_i)
             self.pdfs[self.pdf_id].doc = merger.get()
             self.update_page(self.pdfs[self.pdf_id].page_i)
+            self.load_quickset()
     def event_insert_page(self, *_args):
         """Insert a blank page (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
@@ -1335,6 +1341,7 @@ class App():
         self.pdfs[self.pdf_id].doc = inserter.get()
         self.pdfs[self.pdf_id].add_page_data(self.pdfs[self.pdf_id].page_i)
         self.update_page(self.pdfs[self.pdf_id].page_i)
+        self.load_quickset()
     def event_watermark_page(self, *_args):
         """Watermark the current page"""
         self.set_unsaved() # A modification has been made to the document.
@@ -1366,6 +1373,7 @@ class App():
         if self.pdfs[self.pdf_id].page_i ==  len(self.pdfs[self.pdf_id].doc):
             self.pdfs[self.pdf_id].page_i -= 1
         self.update_page(self.pdfs[self.pdf_id].page_i)
+        self.load_quickset()
     def event_extract_text(self, *_args):
         """Extract text from the PDF to a .txt (Button Event)"""
         self.set_unsaved() # A modification has been made to the document.
